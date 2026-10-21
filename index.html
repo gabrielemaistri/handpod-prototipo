@@ -24,6 +24,7 @@
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#171716; --fg:#ECEAE6; --fg-2:#A29E97; --line:#3A3936; --panel:#1F1F1D; --accent:#E3A53A; --ok:#7FB08A; --clk:#F2924A; color-scheme:dark } }
 :root[data-theme="dark"]{ --bg:#171716; --fg:#ECEAE6; --fg-2:#A29E97; --line:#3A3936; --panel:#1F1F1D; --accent:#E3A53A; --ok:#7FB08A; --clk:#F2924A; color-scheme:dark }
 
+[hidden]{display:none!important} /* la finestra iniziale si nasconde anche fuori da Claude */
 html,body{height:100%}
 body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.45;overflow:hidden;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
