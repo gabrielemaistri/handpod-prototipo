@@ -32,8 +32,25 @@ button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
-#app{height:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,380px);gap:20px;padding-block:14px}
-@media (max-aspect-ratio: 1/1){ #app{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)} }
+/* pannello del ricercatore: chiuso all'avvio. La colonna si allarga con una transizione e il palco (macchina e chat)
+   si ricentra nello spazio rimasto; il device non cambia dimensione perché la sua misura dipende dalla finestra. */
+#app{--pw:min(380px,34vw);height:100%;display:grid;grid-template-columns:minmax(0,1fr) 34px 0px;gap:0;padding-block:14px;transition:grid-template-columns 450ms var(--ease)}
+#app.pOpen{grid-template-columns:minmax(0,1fr) 34px var(--pw)}
+.panelWrap{min-width:0;min-height:0;overflow:hidden;display:flex;justify-content:flex-start}
+.panelWrap .panel{width:var(--pw);flex:none;box-sizing:border-box}
+.ptog{align-self:center;justify-self:center;width:26px;height:46px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--fg-2);display:grid;place-items:center;padding:0;z-index:5}
+.ptog:hover{color:var(--fg)}
+.ptog svg{width:12px;height:12px;transition:transform 450ms var(--ease)}
+#app.pOpen .ptog svg{transform:rotate(180deg)}
+.stage{padding-left:34px}
+@media (max-aspect-ratio: 1/1){ #app{grid-template-columns:minmax(0,1fr) 0 0} #app.pOpen{grid-template-columns:minmax(0,1fr) 0 0}
+ .stage{padding-left:0}
+ .ptog{position:fixed;right:6px;top:50%;transform:translateY(-50%);transition:right 450ms var(--ease)}
+ #app.pOpen .ptog{right:calc(min(380px,88vw) + 10px)}
+ .panelWrap{position:fixed;top:10px;bottom:10px;right:0;width:0;z-index:4;transition:width 450ms var(--ease)}
+ #app.pOpen .panelWrap{width:min(380px,88vw)}
+ .panelWrap .panel{width:min(380px,88vw)} }
+@media (prefers-reduced-motion: reduce){ #app,.ptog,.ptog svg,.panelWrap{transition:none} }
 .stage{min-width:0;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;position:relative;padding-top:36px}
 .stage-top{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:12px;color:var(--fg-2);letter-spacing:.06em;text-transform:uppercase}
 .brand{font-family:var(--f-display);font-size:18px;letter-spacing:.02em;text-transform:none;color:var(--fg)}
@@ -196,7 +213,7 @@ body.closable,.device.closable{cursor:pointer}
 .pillbtn.sec{background:transparent;color:var(--fg);border:1px solid var(--line)}
 .voice .hint{font-size:12px;color:var(--fg-2)}
 
-/* ---------- research panel (always open) ---------- */
+/* ---------- research panel (closed by default, opened with the arrow) ---------- */
 .panel{min-width:0;min-height:0;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:18px}
 .panel h2{font-family:var(--f-display);font-weight:400;font-size:22px;margin:0}
 .panel h3{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--fg-2);margin:0 0 8px;font-weight:500}
@@ -264,13 +281,14 @@ details summary{cursor:pointer;font-size:13.5px}
       <div class="hint" id="voiceHint"></div>
     </form>
   </main>
-  <aside class="panel" id="panel"></aside>
+  <button class="ptog" id="ptog" type="button" aria-expanded="false" aria-controls="panelWrap"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M7.5 2.5 4 6l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  <div class="panelWrap" id="panelWrap" aria-hidden="true"><aside class="panel" id="panel"></aside></div>
 </div>
 <div class="setup" id="setup"></div>
 
 <script>
 /* =====================================================================
-   HandPod, prototipo navigabile, versione 12.
+   HandPod, prototipo navigabile, versione 13.
    Divisione del lavoro come nella Tabella 6.2 della tesi:
    LOCALE (in questa pagina, nessuna rete): calcolo nutrizionale e ribilanciamento,
    vincoli di sicurezza, profili e loro creazione (incluso il riconoscimento delle
@@ -307,10 +325,11 @@ const STRINGS = {
   askMode:"Ciao {n}, impariamo a conoscerci. Preferisci un profilo completo o partiamo veloci e creiamo subito? Possiamo approfondire quando vuoi.",
   modeAgain:"Non ho capito bene: facciamo il profilo completo o partiamo veloci?",
   quickOk:"Va bene, allora ti faccio solo qualche domanda di contesto.", fullOk:"Va bene, facciamo il profilo completo: una domanda alla volta.",
-  askTastes:"Che gusti hai? Raccontami come ti piace mangiare durante la giornata, per esempio dolce e leggero al mattino, salato e sostanzioso la sera.", askAge:"Quanti anni hai?", askWeight:"Quanto pesi?",
+  askTastes:"Quali sono i tuoi gusti? Descrivimi cosa mangi a colazione, pranzo e cena.", askAge:"Quanti anni hai?", askWeight:"Quanto pesi?",
   askHealth:"Hai allergie, intolleranze o malattie che influenzano la tua dieta?", askDiet:"Segui una dieta particolare?", askRefuse:"Ci sono ingredienti che non vuoi mai, anche senza un motivo medico?",
   loadAsk:"{i} {q}, dimmi quando proseguire",
-  hello:"Ciao", deepIntro:"Capisco, interessante.", deepFallback:"C'è qualcosa che invece non mangeresti mai?",
+  hello:"Ciao", deepIntro:"Chiaro.", deepFallback:"C'è qualcosa che invece non mangeresti mai?", askMerenda:"E a merenda, cosa ti va di solito?",
+  confirmQ:"Ho capito bene?", askCorrect:"Cosa devo correggere?", sumLead:"Ecco cosa ho capito:",
   mixing:"Sto mescolando", pressing:"Sto pressando", ready:"È pronto, prendi la tua Pod!",
   pickOffline:"Tocca per comporre", tellMore:"Dimmi di più", errRate:"Riprova fra poco", errRefused:"Dillo in altro modo", errGeneric:"Non ci sono riuscito",
   kcal:"kcal", of:"su {x}", protein:"proteine", carbs:"carboidrati", fat:"grassi",
@@ -319,18 +338,18 @@ const STRINGS = {
   askSlot:"Prima di procedere, una cosa sola: {s} come ti piace mangiare?",
   slots:{colazione:"colazione",pranzo:"pranzo",merenda:"merenda",cena:"cena",spuntino:"spuntino"}, slotsAt:{colazione:"a colazione",pranzo:"a pranzo",merenda:"a merenda",cena:"a cena",spuntino:"per lo spuntino"},
   pSlot:"Fascia di consumo", slotAuto:"Automatica dall'ora (ora: {s})", slotReal:"reale", slotForced:"forzata", slotNote:"Strumento del prototipo, non funzione del prodotto: serve a mostrare una fascia diversa da quella dell'ora.",
-  reask:{create_name:"Dimmi solo il tuo nome, per esempio «Giulia».", create_mode:"Scegli una delle due: scrivi «completo» per un profilo dettagliato oppure «veloce» per partire subito.", create_age:"Scrivimi solo l'età in numero, per esempio «34».", create_weight:"Scrivimi solo il peso in chili, per esempio «68».", create_health:"Se non hai nulla scrivi «nessuna»; altrimenti nominale, per esempio «intolleranza al lattosio» oppure «celiachia».", create_diet:"Scrivi «nessuna» oppure il nome della dieta, per esempio «vegetariana».", create_refuse:"Scrivi «nessuno» oppure il nome dell'ingrediente, per esempio «coriandolo».", create_likes:"Dimmi una cosa che ti piace mangiare e quando, per esempio «dolce al mattino, salato a cena».", create_deep:"Rispondimi in poche parole: va bene anche solo «sì» o «no».", slot_taste:"{s} preferisci qualcosa di dolce o di salato? Per esempio «qualcosa di dolce e leggero».", listen:"Dimmi che cosa vuoi mangiare, per esempio «un pranzo con ceci e limone».", rework:"Dimmi una sola cosa da cambiare, per esempio «più saporito» oppure «senza zucca».", fix:"Vuoi che corregga io le quantità? Rispondi «sì» oppure «no»."},
+  reask:{create_clarify:"Rispondimi in poche parole su quel punto.", create_confirm:"Rispondi «sì» se è giusto, oppure dimmi cosa correggere.", create_correct:"Dimmi in poche parole cosa cambiare, per esempio «a cena mangio pesce».", create_name:"Dimmi solo il tuo nome, per esempio «Giulia».", create_mode:"Scegli una delle due: scrivi «completo» per un profilo dettagliato oppure «veloce» per partire subito.", create_age:"Scrivimi solo l'età in numero, per esempio «34».", create_weight:"Scrivimi solo il peso in chili, per esempio «68».", create_health:"Se non hai nulla scrivi «nessuna»; altrimenti nominale, per esempio «intolleranza al lattosio» oppure «celiachia».", create_diet:"Scrivi «nessuna» oppure il nome della dieta, per esempio «vegetariana».", create_refuse:"Scrivi «nessuno» oppure il nome dell'ingrediente, per esempio «coriandolo».", create_likes:"Dimmi una cosa che ti piace mangiare e quando, per esempio «dolce al mattino, salato a cena».", create_deep:"Rispondimi in poche parole: va bene anche solo «sì» o «no».", slot_taste:"{s} preferisci qualcosa di dolce o di salato? Per esempio «qualcosa di dolce e leggero».", listen:"Dimmi che cosa vuoi mangiare, per esempio «un pranzo con ceci e limone».", rework:"Dimmi una sola cosa da cambiare, per esempio «più saporito» oppure «senza zucca».", fix:"Vuoi che corregga io le quantità? Rispondi «sì» oppure «no»."},
   reworkAsk:"Cosa cambio", fixAsk:"Correggo io?", fixDone:"Fatto, ho ricalcolato le quantità", fixKept:"Va bene, lascio com'è",
   loadItem:"{q} di {i}", closeMe:"Richiudimi", who:{m:"HandPod",u:"Tu"}, chatEmpty:"Qui compare la conversazione con HandPod.",
   g:{allergen:"{i}: escluso dal profilo", incl:"{i}: massimo {m}%", mass:"Pod oltre {max}", fat:"Troppi grassi per compattare", salt:"Troppo sale per questo profilo", fibmin:"Poca fibra per la dieta del profilo", prot:"Troppe proteine per questo profilo", fiber:"Troppa fibra per pressare", pair:"Lino e trebbie: troppi insieme", iso:"Troppi isolati: si sbriciola", single:"Serve un altro ingrediente"},
   cls:{iso:"Isolati proteici",conc:"Concentrati proteici",flour:"Farine proteiche",cereal:"Cereali e amidi",veg:"Verdure",fruit:"Frutta",nut:"Frutta secca e semi",base:"Basi vegetali",analog:"Aromi di carne, pesce e formaggio",herb:"Erbe",spice:"Spezie",umami:"Condimenti",sweet:"Dolci, cacao e caffè",add:"Addensanti e additivi"},
   /* nomi e descrittori degli ingredienti: vedi ING_TEXT nella tabella dati */
   alg:{glutine:"glutine",soia:"soia",lupino:"lupino",guscio:"frutta a guscio",arachidi:"arachidi",sesamo:"sesamo",senape:"senape",sedano:"sedano"},
-  vLabel:{listen:"Voce simulata · frase per il device", create_name:"Voce simulata · risposta: nome", create_likes:"Voce simulata · risposta: gusti", create_deep:"Voce simulata · risposta: approfondimento", create_mode:"Voce simulata · risposta: completo o veloce", create_age:"Voce simulata · risposta: età (dato fittizio)", create_weight:"Voce simulata · risposta: peso (dato fittizio)", create_health:"Voce simulata · risposta: allergie, intolleranze, condizioni (dati fittizi)", create_diet:"Voce simulata · risposta: dieta", create_refuse:"Voce simulata · risposta: ingredienti mai", slot_taste:"Voce simulata · risposta: gusti di questa fascia", create_allergies:"Voce simulata · risposta: allergie", rework:"Voce simulata · cosa vuoi cambiare", fix:"Voce simulata · risposta: correggo?", idle:"Voce simulata · conversazione con HandPod"},
+  vLabel:{listen:"Voce simulata · frase per il device", create_name:"Voce simulata · risposta: nome", create_likes:"Voce simulata · risposta: gusti", create_deep:"Voce simulata · risposta: approfondimento", create_mode:"Voce simulata · risposta: completo o veloce", create_age:"Voce simulata · risposta: età (dato fittizio)", create_weight:"Voce simulata · risposta: peso (dato fittizio)", create_health:"Voce simulata · risposta: allergie, intolleranze, condizioni (dati fittizi)", create_diet:"Voce simulata · risposta: dieta", create_refuse:"Voce simulata · risposta: ingredienti mai", create_clarify:"Voce simulata · risposta: chiarimento", create_confirm:"Voce simulata · risposta: conferma o correzione", create_correct:"Voce simulata · risposta: correzione", slot_taste:"Voce simulata · risposta: gusti di questa fascia", create_allergies:"Voce simulata · risposta: allergie", rework:"Voce simulata · cosa vuoi cambiare", fix:"Voce simulata · risposta: correggo?", idle:"Voce simulata · conversazione con HandPod"},
   vSend:"Invia", vPh:"Es. qualcosa che mi tenga su fino a pranzo, con la nota di nocciola",
   vHint:{click:"Clicca in un punto qualsiasi dello schermo per proseguire.", sens:"Dato fittizio: usato nella sessione e incluso nel log esportato (modalità test).", on:"La frase va al modello remoto; la proposta viene poi verificata in questa pagina.", create:"La risposta resta in questa pagina.", off:"Senza rete la comprensione delle frasi non è disponibile: si compone toccando lo schermo.", wait:"Collegamento al modello in corso…", na:"Modello non disponibile in questa vista: si compone toccando lo schermo.", idle:"Il campo si attiva quando il device aspetta una risposta.", rework:"La nuova indicazione rivede la proposta attuale, non ne chiede una da zero. Tocca lo schermo per annullare.", reworkOff:"Senza rete la richiesta non può essere riformulata a parole; la composizione resta modificabile ingrediente per ingrediente sullo schermo.", fix:"Rispondi «sì» e la correzione la fa il calcolo locale (funziona anche senza rete); altrimenti modifica tu gli ingredienti.", close:"Clicca in un punto qualsiasi dello schermo per richiudere il coperchio.", likesOn:"La risposta entra nel profilo; la domanda che segue la formula il modello remoto.", slot:"La risposta completa il profilo per questa fascia; poi la richiesta prosegue."},
   pSession:"Sessione", pPid:"Partecipante", pScenario:"Scenario", pStart:"Inizio", pEvents:"Eventi", pPhase:"Fase",
-  pImport:"Importa sessione", pImportHint:"Carica un log JSON esportato: riprende lo stesso partecipante, i profili e la conversazione, e riparte dal riposo per una nuova Pod. Se c'è una sessione aperta, esportala prima.", pImportOk:"Sessione ripresa: {p}", pImportErr:"File non valido: serve un log JSON esportato da questo prototipo.", pImportPartial:"Alcuni profili erano nel log senza la scheda completa: sono stati ripresi solo nome e valori di base.", setupImport:"Riprendi una sessione da file JSON", resumed:"Sessione ripresa da file",
+  pTog:"Pannello del ricercatore", pImport:"Importa sessione", pImportHint:"Carica un log JSON esportato: riprende lo stesso partecipante, i profili e la conversazione, e riparte dal riposo per una nuova Pod. Se c'è una sessione aperta, esportala prima.", pImportOk:"Sessione ripresa: {p}", pImportErr:"File non valido: serve un log JSON esportato da questo prototipo.", pImportPartial:"Alcuni profili erano nel log senza la scheda completa: sono stati ripresi solo nome e valori di base.", setupImport:"Riprendi una sessione da file JSON", resumed:"Sessione ripresa da file",
   pApi:"Modello (versione sito)", apiProv:"Servizio", apiKey:"Chiave API", apiTest:"Prova", apiTesting:"Prova in corso…", apiOk:"Collegamento riuscito: il modello risponde.", apiOdd:"Il modello risponde, ma non nel formato atteso: prova un altro modello.", apiNet:"Il servizio non risponde da questa pagina (rete o blocco del browser).", apiLimit:"Limite gratuito raggiunto: riprova più tardi o domani.", apiModel:"Modello non trovato: controlla il nome del modello.", apiCredit:"Credito esaurito sul servizio.", apiHttp:"Il servizio ha risposto con un errore ({n}).", apiQuick:"Modello rapido", apiDef:"Modello bilanciato", apiSave:"Salva", apiForget:"Dimentica la chiave", apiSaved:"Chiave salvata in questo browser (…{k}).", apiNone:"Nessuna chiave: la traduzione delle frasi è spenta, si compone toccando lo schermo.", apiNote:"La chiave resta solo in questo browser: non entra nel log né nei file del sito. Usala solo su un computer tuo.", apiBad:"La chiave non è stata accettata: controllala.",
   pContinue:"Continua con lo stesso partecipante", pContinueHint:"I profili restano salvati e la macchina torna al riposo per una nuova Pod. Il log resta uno solo.", pExport:"Esporta log (JSON)", pCopy:"Copia JSON", pCopied:"Copiato", pEnd:"Termina sessione", pEnded:"Sessione terminata", pNew:"Nuova sessione", pRest:"Torna al riposo", pCancel:"Annulla richiesta",
   pExportNA:"Esportazione non disponibile in questa vista", pExportWait:"Esportazione in preparazione…", pSaved:"Log salvato", pDeclined:"Salvataggio annullato", pExportErr:"Salvataggio non riuscito",
@@ -346,7 +365,7 @@ const STRINGS = {
   setupTitle:"Prototipo <em>navigabile</em>", setupSub:"Inserisci l'identificativo del partecipante e avvia. La sessione resta in questo browser finché non esporti il log.",
   setupPid:"Identificativo partecipante", setupScenario:"Scenario", setupGo:"Avvia sessione", setupBackup:"C'è una sessione non esportata ({d}).", setupBackupBtn:"Esporta quella sessione", setupBackupDrop:"Scarta",
   scen:{S1:"S1 · Composizione quotidiana",S2:"S2 · L'ospite (preparazione)",S3:"S3 · Il vincolo (preparazione)"},
-  phases:{rework:"rielaborazione: attesa dell'indicazione",rest:"riposo",greet:"saluto",profile:"scelta profilo",create_name:"nuovo profilo: nome",create_likes:"nuovo profilo: gusti",create_deep:"nuovo profilo: approfondimento",create_mode:"nuovo profilo: completo o veloce",create_age:"nuovo profilo: età",create_weight:"nuovo profilo: peso",create_health:"nuovo profilo: salute",create_diet:"nuovo profilo: dieta",create_refuse:"nuovo profilo: ingredienti mai",slot_taste:"completamento profilo: gusti della fascia",create_allergies:"nuovo profilo: allergie",create_done:"nuovo profilo: pronto",listen:"ascolto",think:"attesa del modello",compose:"composizione",open:"apertura: compare la ciotola",load:"caricamento delle polveri (simulato)",close_wait:"in attesa che il coperchio venga richiuso",prep:"preparazione simulata",done:"fine"},
+  phases:{rework:"rielaborazione: attesa dell'indicazione",rest:"riposo",greet:"saluto",profile:"scelta profilo",create_name:"nuovo profilo: nome",create_likes:"nuovo profilo: gusti",create_deep:"nuovo profilo: approfondimento",create_mode:"nuovo profilo: completo o veloce",create_age:"nuovo profilo: età",create_weight:"nuovo profilo: peso",create_health:"nuovo profilo: salute",create_diet:"nuovo profilo: dieta",create_refuse:"nuovo profilo: ingredienti mai",create_summary:"nuovo profilo: riassunto",create_clarify:"nuovo profilo: chiarimento",create_confirm:"nuovo profilo: conferma",create_correct:"nuovo profilo: correzione",slot_taste:"completamento profilo: gusti della fascia",create_allergies:"nuovo profilo: allergie",create_done:"nuovo profilo: pronto",listen:"ascolto",think:"attesa del modello",compose:"composizione",open:"apertura: compare la ciotola",load:"caricamento delle polveri (simulato)",close_wait:"in attesa che il coperchio venga richiuso",prep:"preparazione simulata",done:"fine"},
   screens:["6.1 proposta","7.1 ingredienti","8.1 valori"]
  },
  en:{
@@ -356,10 +375,11 @@ const STRINGS = {
   askMode:"Hi {n}, let's get to know each other. Would you like a full profile, or shall we go quick and create it now? We can go deeper whenever you like.",
   modeAgain:"I didn't quite get that: full profile or quick?",
   quickOk:"All right, then I'll just ask a few context questions.", fullOk:"All right, let's do the full profile: one question at a time.",
-  askTastes:"What flavours do you like? Tell me how you like to eat through the day, for example sweet and light in the morning, savoury and filling in the evening.", askAge:"How old are you?", askWeight:"How much do you weigh?",
+  askTastes:"What are your tastes? Tell me what you eat at breakfast, lunch and dinner.", askAge:"How old are you?", askWeight:"How much do you weigh?",
   askHealth:"Do you have allergies, intolerances or conditions that affect your diet?", askDiet:"Do you follow a particular diet?", askRefuse:"Are there ingredients you never want, even without a medical reason?",
   loadAsk:"{i} {q}, tell me when to go on",
-  hello:"Hi", deepIntro:"I see, interesting.", deepFallback:"Is there anything you would never eat?",
+  hello:"Hi", deepIntro:"Got it.", deepFallback:"Is there anything you would never eat?", askMerenda:"And for an afternoon snack, what do you usually feel like?",
+  confirmQ:"Did I get that right?", askCorrect:"What should I correct?", sumLead:"Here is what I understood:",
   mixing:"Mixing", pressing:"Pressing", ready:"It's ready, take your Pod!",
   pickOffline:"Tap to compose", tellMore:"Tell me more", errRate:"Try again shortly", errRefused:"Say it differently", errGeneric:"That didn't work",
   kcal:"kcal", of:"of {x}", protein:"protein", carbs:"carbs", fat:"fat",
@@ -368,18 +388,18 @@ const STRINGS = {
   askSlot:"Before we go on, just one thing: what do you like to eat {s}?",
   slots:{colazione:"breakfast",pranzo:"lunch",merenda:"afternoon snack",cena:"dinner",spuntino:"late snack"}, slotsAt:{colazione:"at breakfast",pranzo:"at lunch",merenda:"for an afternoon snack",cena:"at dinner",spuntino:"for a late snack"},
   pSlot:"Eating moment", slotAuto:"Automatic from the clock (now: {s})", slotReal:"real", slotForced:"forced", slotNote:"Prototype tool, not a product feature: shows a moment different from the current time.",
-  reask:{create_name:"Just tell me your name, for example «Julia».", create_mode:"Pick one of the two: write «full» for a detailed profile or «quick» to start right away.", create_age:"Just write your age as a number, for example «34».", create_weight:"Just write your weight in kilos, for example «68».", create_health:"If you have nothing write «none»; otherwise name it, for example «lactose intolerance» or «coeliac disease».", create_diet:"Write «none» or the name of the diet, for example «vegetarian».", create_refuse:"Write «none» or the name of the ingredient, for example «coriander».", create_likes:"Tell me one thing you like to eat and when, for example «sweet in the morning, savoury at dinner».", create_deep:"Answer in a few words: just «yes» or «no» is fine.", slot_taste:"{s}, do you prefer something sweet or savoury? For example «something sweet and light».", listen:"Tell me what you want to eat, for example «a lunch with chickpeas and lemon».", rework:"Tell me one thing to change, for example «tastier» or «without pumpkin».", fix:"Shall I fix the amounts? Answer «yes» or «no»."},
+  reask:{create_clarify:"Answer in a few words about that point.", create_confirm:"Say «yes» if it is right, or tell me what to correct.", create_correct:"Tell me briefly what to change, for example «I eat fish at dinner».", create_name:"Just tell me your name, for example «Julia».", create_mode:"Pick one of the two: write «full» for a detailed profile or «quick» to start right away.", create_age:"Just write your age as a number, for example «34».", create_weight:"Just write your weight in kilos, for example «68».", create_health:"If you have nothing write «none»; otherwise name it, for example «lactose intolerance» or «coeliac disease».", create_diet:"Write «none» or the name of the diet, for example «vegetarian».", create_refuse:"Write «none» or the name of the ingredient, for example «coriander».", create_likes:"Tell me one thing you like to eat and when, for example «sweet in the morning, savoury at dinner».", create_deep:"Answer in a few words: just «yes» or «no» is fine.", slot_taste:"{s}, do you prefer something sweet or savoury? For example «something sweet and light».", listen:"Tell me what you want to eat, for example «a lunch with chickpeas and lemon».", rework:"Tell me one thing to change, for example «tastier» or «without pumpkin».", fix:"Shall I fix the amounts? Answer «yes» or «no»."},
   reworkAsk:"What should I change", fixAsk:"Shall I fix it?", fixDone:"Done, I recalculated the amounts", fixKept:"All right, I'll leave it",
   loadItem:"{q} of {i}", closeMe:"Close me", who:{m:"HandPod",u:"You"}, chatEmpty:"The conversation with HandPod appears here.",
   g:{allergen:"{i}: excluded by profile", incl:"{i}: max {m}%", mass:"Pod over {max}", fat:"Too much fat to compact", salt:"Too much salt for this profile", fibmin:"Too little fibre for this profile's diet", prot:"Too much protein for this profile", fiber:"Too much fibre to press", pair:"Flax and spent grain: too much", iso:"Too many isolates: it crumbles", single:"Needs another ingredient"},
   cls:{iso:"Protein isolates",conc:"Protein concentrates",flour:"Protein flours",cereal:"Grains and starches",veg:"Vegetables",fruit:"Fruit",nut:"Nuts and seeds",base:"Plant bases",analog:"Meat, fish and cheese flavours",herb:"Herbs",spice:"Spices",umami:"Condiments",sweet:"Sweet, cocoa and coffee",add:"Thickeners and additives"},
   /* nomi e descrittori degli ingredienti: vedi ING_TEXT nella tabella dati */
   alg:{glutine:"gluten",soia:"soy",lupino:"lupin",guscio:"tree nuts",arachidi:"peanuts",sesamo:"sesame",senape:"mustard",sedano:"celery"},
-  vLabel:{listen:"Simulated voice · sentence for the device", create_name:"Simulated voice · answer: name", create_likes:"Simulated voice · answer: tastes", create_deep:"Simulated voice · answer: follow-up", create_mode:"Simulated voice · answer: full or quick", create_age:"Simulated voice · answer: age (fictitious)", create_weight:"Simulated voice · answer: weight (fictitious)", create_health:"Simulated voice · answer: allergies, intolerances, conditions (fictitious)", create_diet:"Simulated voice · answer: diet", create_refuse:"Simulated voice · answer: never-ingredients", slot_taste:"Simulated voice · answer: tastes for this moment", create_allergies:"Simulated voice · answer: allergies", rework:"Simulated voice · what to change", fix:"Simulated voice · answer: shall I fix it?", idle:"Simulated voice · conversation with HandPod"},
+  vLabel:{listen:"Simulated voice · sentence for the device", create_name:"Simulated voice · answer: name", create_likes:"Simulated voice · answer: tastes", create_deep:"Simulated voice · answer: follow-up", create_mode:"Simulated voice · answer: full or quick", create_age:"Simulated voice · answer: age (fictitious)", create_weight:"Simulated voice · answer: weight (fictitious)", create_health:"Simulated voice · answer: allergies, intolerances, conditions (fictitious)", create_diet:"Simulated voice · answer: diet", create_refuse:"Simulated voice · answer: never-ingredients", create_clarify:"Simulated voice · answer: clarification", create_confirm:"Simulated voice · answer: confirm or correct", create_correct:"Simulated voice · answer: correction", slot_taste:"Simulated voice · answer: tastes for this moment", create_allergies:"Simulated voice · answer: allergies", rework:"Simulated voice · what to change", fix:"Simulated voice · answer: shall I fix it?", idle:"Simulated voice · conversation with HandPod"},
   vSend:"Send", vPh:"E.g. something to keep me going until lunch, with that hazelnut note",
   vHint:{click:"Click anywhere on the screen to go on.", sens:"Fictitious data: used in the session and included in the exported log (test mode).", on:"The sentence goes to the remote model; the proposal is then checked in this page.", create:"The answer stays in this page.", off:"Offline, sentence understanding is not available: compose by tapping the screen.", wait:"Connecting to the model…", na:"Model not available in this view: compose by tapping the screen.", idle:"The field turns on when the device is waiting for an answer.", rework:"The new instruction revises the current proposal; it does not ask for a fresh one. Tap the screen to cancel.", reworkOff:"Offline the request cannot be rephrased in words; the composition stays editable ingredient by ingredient on the screen.", fix:"Answer «yes» and the local calculation applies the fix (works offline too); otherwise edit the ingredients yourself.", close:"Click anywhere on the screen to close the lid.", likesOn:"The answer goes into the profile; the follow-up question is written by the remote model.", slot:"The answer completes the profile for this moment; then the request goes on."},
   pSession:"Session", pPid:"Participant", pScenario:"Scenario", pStart:"Started", pEvents:"Events", pPhase:"Phase",
-  pImport:"Import session", pImportHint:"Load an exported JSON log: it resumes the same participant, the profiles and the conversation, and starts again from rest for a new Pod. If a session is open, export it first.", pImportOk:"Session resumed: {p}", pImportErr:"Invalid file: a JSON log exported by this prototype is needed.", pImportPartial:"Some profiles were logged without the full card: only name and base values were restored.", setupImport:"Resume a session from a JSON file", resumed:"Session resumed from file",
+  pTog:"Researcher panel", pImport:"Import session", pImportHint:"Load an exported JSON log: it resumes the same participant, the profiles and the conversation, and starts again from rest for a new Pod. If a session is open, export it first.", pImportOk:"Session resumed: {p}", pImportErr:"Invalid file: a JSON log exported by this prototype is needed.", pImportPartial:"Some profiles were logged without the full card: only name and base values were restored.", setupImport:"Resume a session from a JSON file", resumed:"Session resumed from file",
   pApi:"Model (website version)", apiProv:"Service", apiKey:"API key", apiTest:"Test", apiTesting:"Testing…", apiOk:"Connected: the model answers.", apiOdd:"The model answers, but not in the expected format: try another model.", apiNet:"The service does not answer from this page (network or browser block).", apiLimit:"Free limit reached: try again later or tomorrow.", apiModel:"Model not found: check the model name.", apiCredit:"No credit left on the service.", apiHttp:"The service answered with an error ({n}).", apiQuick:"Quick model", apiDef:"Balanced model", apiSave:"Save", apiForget:"Forget the key", apiSaved:"Key saved in this browser (…{k}).", apiNone:"No key: sentence translation is off, compose by tapping the screen.", apiNote:"The key stays only in this browser: it never enters the log or the site files. Use it only on your own computer.", apiBad:"The key was not accepted: check it.",
   pContinue:"Continue with the same participant", pContinueHint:"Profiles stay saved and the machine goes back to rest for a new Pod. The log stays a single file.", pExport:"Export log (JSON)", pCopy:"Copy JSON", pCopied:"Copied", pEnd:"End session", pEnded:"Session ended", pNew:"New session", pRest:"Back to rest", pCancel:"Cancel request",
   pExportNA:"Export not available in this view", pExportWait:"Preparing export…", pSaved:"Log saved", pDeclined:"Save cancelled", pExportErr:"Save failed",
@@ -395,7 +415,7 @@ const STRINGS = {
   setupTitle:"Navigable <em>prototype</em>", setupSub:"Enter the participant identifier and start. The session stays in this browser until you export the log.",
   setupPid:"Participant identifier", setupScenario:"Scenario", setupGo:"Start session", setupBackup:"There is an unexported session ({d}).", setupBackupBtn:"Export that session", setupBackupDrop:"Discard",
   scen:{S1:"S1 · Everyday composition",S2:"S2 · The guest (preparation)",S3:"S3 · The constraint (preparation)"},
-  phases:{rework:"rework: waiting for the instruction",rest:"rest",greet:"greeting",profile:"profile choice",create_name:"new profile: name",create_likes:"new profile: likes",create_deep:"new profile: follow-up",create_mode:"new profile: full or quick",create_age:"new profile: age",create_weight:"new profile: weight",create_health:"new profile: health",create_diet:"new profile: diet",create_refuse:"new profile: never-ingredients",slot_taste:"profile completion: tastes for this moment",create_allergies:"new profile: allergies",create_done:"new profile: ready",listen:"listening",think:"waiting for the model",compose:"composition",open:"opening: the bowl appears",load:"loading the powders (simulated)",close_wait:"waiting for the lid to be closed",prep:"simulated preparation",done:"end"},
+  phases:{rework:"rework: waiting for the instruction",rest:"rest",greet:"greeting",profile:"profile choice",create_name:"new profile: name",create_likes:"new profile: likes",create_deep:"new profile: follow-up",create_mode:"new profile: full or quick",create_age:"new profile: age",create_weight:"new profile: weight",create_health:"new profile: health",create_diet:"new profile: diet",create_refuse:"new profile: never-ingredients",create_summary:"new profile: summary",create_clarify:"new profile: clarification",create_confirm:"new profile: confirmation",create_correct:"new profile: correction",slot_taste:"profile completion: tastes for this moment",create_allergies:"new profile: allergies",create_done:"new profile: ready",listen:"listening",think:"waiting for the model",compose:"composition",open:"opening: the bowl appears",load:"loading the powders (simulated)",close_wait:"waiting for the lid to be closed",prep:"simulated preparation",done:"end"},
   screens:["6.1 proposal","7.1 ingredients","8.1 values"]
  }
 };
@@ -912,6 +932,8 @@ function buildLog(){
    offline_toggles: cnt("offline_toggle"),
    reworks: ev.filter(e=>e.type==="rework").map(e=>({n:e.n, text:e.text, origin:e.origin, type_model:e.request_type_model, type_local_heuristic:e.request_type_local_heuristic, added:e.diff.added.map(x=>x.id), removed:e.diff.removed.map(x=>x.id), changed:e.diff.changed.map(x=>x.id), unchanged:e.diff.unchanged.length, person_set_kept:e.person_set_kept.length+"/"+e.person_set_total})),
    reworks_attempted_offline: cnt("rework_unavailable_offline"), reworks_cancelled: cnt("rework_cancelled"),
+   profile_checks: ev.filter(e=>["profile_summary","profile_clarify_answer","profile_confirm","profile_summary_updated","profile_summary_reformulated"].includes(e.type)).map(e=>({type:e.type, text:e.text, question:e.question||e.clarify_question, field:e.field||e.clarify_field, answer:e.answer, result:e.result, source:e.source, at:e.t})),
+   panel_toggles: ev.filter(e=>e.type==="panel_toggle").map(e=>({open:e.open, at:e.t})),
    edge_cases: ev.filter(e=>e.type==="edge_case").map(e=>({phase:e.phase, behaviour:e.behaviour, reason:e.reason, input:e.input, consecutive:e.consecutive, response:e.response})),
    chat_messages:{machine:ev.filter(e=>e.type==="chat_message"&&e.who==="m").length, participant:ev.filter(e=>e.type==="chat_message"&&e.who==="u").length},
    bowl_loading: ev.filter(e=>e.type==="powder_loaded").map(e=>({order:e.order, ingredient:e.ingredient, spoon:e.spoon_label, grams:e.grams, message_at:e.prompted_at, click_at:e.t, wait_ms:e.wait_ms})),
@@ -1051,6 +1073,7 @@ function faceFor(){
   case "create_deep": return {n:3, v:`S.phase = "create_deep"  (domanda di approfondimento)`};
   case "create_allergies": return {n:4, v:`S.phase = "create_allergies"`};
   case "create_mode": return {n:3, v:`S.phase = "create_mode"  (profilo completo o veloce)`};
+  case "create_summary": case "create_clarify": case "create_confirm": case "create_correct": return {n:3, v:`S.phase = "${S.phase}"  (controllo e conferma del profilo)`};
   case "slot_taste": return {n:3, v:`S.phase = "slot_taste"  (completamento del profilo: gusti della fascia)`};
   case "create_age": case "create_weight": case "create_diet": case "create_refuse": return {n:3, v:`S.phase = "${S.phase}"`};
   case "create_health": return {n:4, v:`S.phase = "create_health"`};
@@ -1541,6 +1564,8 @@ function validate(phase,raw){
   case "create_likes": case "slot_taste": { if(bc) return {ok:false,reason:bc}; if(t.length<3) return {ok:false,reason:"too_short"};
    if(!TASTE_RE.test(t)&&!SLOTS.some(k=>SLOT_RE[k].test(t))&&!anyName(t)) return {ok:false,reason:"off_topic"}; return {ok:true, value:t.slice(0,200)}; }
   case "create_deep": { if(bc) return {ok:false,reason:bc}; if(t.length<2) return {ok:false,reason:"too_short"}; return {ok:true, value:t.slice(0,200)}; }
+  case "create_clarify": case "create_correct": { if(bc) return {ok:false,reason:bc}; if(t.length<2) return {ok:false,reason:"too_short"}; return {ok:true, value:t.slice(0,200)}; }
+  case "create_confirm": { if(bc) return {ok:false,reason:bc}; return {ok:true, value:t.slice(0,200)}; }
   case "listen": case "rework": { if(bc) return {ok:false,reason:bc}; if(t.length<3&&!/\p{L}{3}/u.test(t)) return {ok:false,reason:"too_short"}; return {ok:true, value:t}; }
   case "fix": { if(YES_RE.test(t)) return {ok:true, value:"yes"}; if(NO_RE.test(t)) return {ok:true, value:"no"}; return {ok:false,reason:bc||"not_yes_no"}; }
  }
@@ -1568,7 +1593,7 @@ const MODE_QUICK=/velo|subito|rapid|svelt|breve|in fretta|di fretta|non ho tempo
 function readMode(t){ t=String(t||"").toLowerCase(); if(/approfond\w*\s+(dopo|più tardi|poi|un'altra volta|later)/.test(t)) return "quick"; const neg=/\bnon\b.{0,12}(complet|approfond)|\bno\b.{0,6}(complet)/.test(t); const f=MODE_FULL.test(t)&&!neg, q=MODE_QUICK.test(t)||neg;
  if(f&&!q) return "complete"; if(q&&!f) return "quick"; if(f&&q) return /non ho tempo|poco tempo|di fretta|in fretta/.test(t)?"quick":null; return null; }
 function goNext(from){ const d=S.draft, seq=FLOW[d.mode||"quick"], i=from?seq.indexOf(from):-1, nx=seq[i+1];
- if(nx==="DEEP"){ S.phase="create_likes"; askDeep(); return; } if(nx==="DONE"){ finishProfile(); return; } S.phase=nx; render(); focusVoice(); }
+ if(nx==="DEEP"){ S.phase="create_likes"; askDeep(); return; } if(nx==="DONE"){ startSummary(); return; } S.phase=nx; render(); focusVoice(); }
 function createStep(value){
  const P=S.phase, chk=validate(P,value);
  if(!chk.ok){ notUnderstood(P,chk.reason,value); return; }
@@ -1580,9 +1605,12 @@ function createStep(value){
  if(P==="create_likes"){ d.likes=v; ans("tastes",T("askTastes"),d.likes); askDeep(); return; }
  if(P==="create_deep"){ d.deepA=v; ans("follow-up",T("deepIntro")+" "+d.deepQ,d.deepA);
   /* se la domanda chiedeva di un momento mancante, la risposta compila quel momento; poi i momenti nominati */
-  if(d.askedAbout&&!NONE_RE.test(v)&&!/^(no|non so|boh)\b/i.test(v)) d.tastes[d.askedAbout]=v.slice(0,80);
+  if(d.askedAbout&&!NONE_RE.test(v)&&!/^(no|non so|boh|niente|nulla)\b/i.test(v)) d.tastes[d.askedAbout]=v.slice(0,80);
   for(const [k,x] of Object.entries(extractSlots(v))) if(!d.tastes[k]) d.tastes[k]=x.slice(0,80);
   goNext("DEEP"); return; }
+ if(P==="create_clarify"){ answerClarify(v); return; }
+ if(P==="create_confirm"){ answerConfirm(v); return; }
+ if(P==="create_correct"){ applyCorrection(v); return; }
  if(P==="create_age"){ d.age=chk.value; ans("age",T("askAge"),v,true); goNext(P); return; }
  if(P==="create_weight"){ d.weight=chk.value; ans("weight",T("askWeight"),v,true); goNext(P); return; }
  if(P==="create_health"){ d.healthText=v; d.health=parseHealth(chk.value); ans("health",T("askHealth"),v,true); goNext(P); return; }
@@ -1602,11 +1630,121 @@ async function modeByModel(text){
  if(failed||malformed){ edgeCase("create_mode","failure",failed?"call_failed":"malformed",text,{fn:"profile_mode"}); say(T("failMsg")); render(); focusVoice(); return; }
  if(m){ understood(); setMode(m,"model",text); } else again("model_unclear");
 }
-function finishProfile(){
- const d=S.draft, key="new"+(++S.createdCount), h=d.health;
+function draftProfile(key){
+ const d=S.draft, h=d.health;
  const health=h?{allergies:h.allergies, intolerances:h.intolerances, conditions:h.conditions, extraIds:h.extraIds}:{allergies:null,intolerances:null,conditions:null,extraIds:[]};
- const p=newProfile({key, initial:(d.name[0]||"?").toUpperCase(), name:d.name, likes:d.likes, tasteQ:d.deepQ, tasteA:d.deepA, tastes:{...Object.fromEntries(SLOTS.map(k=>[k,null])), ...(d.tastes||{})}, mode:d.mode, age:d.age, weight:d.weight,
-  health, diet:d.diet, refused:d.refused, allergyText:d.healthText||"", allergyWords:h?h.matched:[], created:true});
+ return newProfile({key, initial:(d.name[0]||"?").toUpperCase(), name:d.name, likes:d.likes, tasteQ:d.deepQ, tasteA:d.deepA, tastes:{...Object.fromEntries(SLOTS.map(k=>[k,null])), ...(d.tastes||{})}, mode:d.mode, age:d.age, weight:d.weight,
+  health, diet:d.diet, refused:d.refused, allergyText:d.healthText||"", allergyWords:h?h.matched:[], created:true}); }
+/* ============ CONTROLLO E CONFERMA DEL PROFILO ============
+   Dopo l'ultima risposta la macchina riassume il profilo come l'ha capito (modello, due righe al massimo).
+   Se qualcosa è ambiguo, contraddittorio o incompleto pone UNA domanda di chiarimento; altrimenti chiede "Ho capito bene?".
+   Una correzione aggiorna la scheda e la macchina riformula il riassunto una volta sola, poi procede comunque.
+   Senza rete: riassunto composto dai campi della scheda, nessun chiarimento, subito la conferma. */
+const MEAT_RE=/carne|manzo|maiale|pollo|tacchino|prosciutt|pancett|salum|salsicc|bistecc|hamburger|\bmeat|chicken|beef|pork|ham\b/i, FISH_RE=/pesce|tonno|salmon|gamber|frutti di mare|sushi|\bfish|tuna|shrimp/i;
+function profileIssues(p){ const out=[], t=Object.values(p.tastes||{}).filter(Boolean).join(" ; ")+" ; "+(p.likes||"");
+ ["colazione","pranzo","cena"].forEach(k=>{ if(!p.tastes[k]) out.push(`${k}: not described clearly in the answer`); });
+ const tags=(p.diet&&p.diet.tags)||[];
+ if((tags.includes("vegetariana")||tags.includes("vegana"))&&(MEAT_RE.test(t)||FISH_RE.test(t))) out.push("diet is vegetarian/vegan but tastes mention meat or fish");
+ if(tags.includes("pescetariana")&&MEAT_RE.test(t)) out.push("diet is pescatarian but tastes mention meat");
+ const re=allergyRegex(p); if(re&&re.test(t)) out.push("tastes mention something excluded by allergies, intolerances or conditions");
+ const rf=(p.refusedIds||[]).map(nm).find(x=>t.toLowerCase().includes(x.split(/\s+/)[0].toLowerCase())); if(rf) out.push(`tastes mention ${rf}, which they never want`);
+ return out; }
+function localSummary(p){ const L=S.lang==="it", tl=k=>p.tastes[k]?String(p.tastes[k]).split(/[,;]/)[0].trim():null;
+ const meals=["colazione","pranzo","cena","merenda"].filter(k=>tl(k)).map(k=>(L?T("slotsAt."+k):T("slotsAt."+k))+" "+tl(k));
+ const h=p.health||{}, lim=[...HEALTH_KINDS.flatMap(k=>(h[k]||[]).map(x=>hLabel(k,x)))]; const diet=p.diet&&p.diet.tags&&p.diet.tags.length?p.diet.tags.join(", "):null;
+ let a=meals.length?(L?"Ti piace mangiare ":"You like to eat ")+meals.join(", ")+".":(L?"Ti piace: ":"You like: ")+(p.likes||"").slice(0,80)+".";
+ const b=[lim.length?(L?"tengo conto di ":"I take into account ")+lim.join(", "):null, diet?(L?"dieta ":"diet ")+diet:null, (p.refusedIds||[]).length?(L?"niente ":"no ")+p.refusedIds.slice(0,3).map(x=>nm(x).toLowerCase()).join(", "):null].filter(Boolean);
+ return a+(b.length?" "+cap(b.join("; "))+".":""); }
+function summaryPrompt(p,issues){ const L=LANGNAME[S.lang], h=p.health||{};
+ const data={name:p.name, path:p.mode, likes:p.likes, tastes_by_meal:p.tastes, age:p.age, weight_kg:p.weight,
+  allergies:h.allergies&&h.allergies.map(x=>hLabel("allergies",x)), intolerances:h.intolerances&&h.intolerances.map(x=>hLabel("intolerances",x)), conditions:h.conditions&&h.conditions.map(x=>hLabel("conditions",x)),
+  health_answer:p.allergyText||null, diet:p.diet, never_wants:(p.refusedIds||[]).map(nm)};
+ return `HandPod, a home food device, has just built a person's profile from their answers. Data (null = not asked): ${JSON.stringify(data)}
+Local checks found these possible problems: ${issues.length?issues.join(" | "):"none"}.
+Write in ${L}:
+- "summary": what you understood about how this person eats and what to avoid, as natural speech in second person, at most 2 short lines (35 words). Do not list the fields one by one, do not repeat their answers word for word, no praise, no health advice.
+- "clarify": if something is ambiguous, contradictory or incomplete in a way that matters for preparing their food (for example a meal described so vaguely it cannot be used, a taste that contradicts their diet or an allergy, an implausible value), ONE short question (max 15 words, ending with "?") about that single point; otherwise null.
+- "field": the field the question is about: likes|colazione|pranzo|merenda|cena|health|diet|refused|age|weight, or null.
+Reply with only {"summary":"...","clarify":null,"field":null}`; }
+function patchPrompt(p,question,answer){ const L=LANGNAME[S.lang], h=p.health||{};
+ return `HandPod is updating a person's food profile. Current data: ${JSON.stringify({likes:p.likes, tastes_by_meal:p.tastes, age:p.age, weight_kg:p.weight, health_answer:p.allergyText||null, diet_text:p.diet&&p.diet.text, never_wants_text:p.refused&&p.refused.text})}
+The device asked: «${question}». The person answered: «${answer}».
+Return the fields to change (null = unchanged). health_text, diet_text and never_wants_text must be the full updated text, written so that names of allergies, intolerances, conditions, diets and ingredients stay explicit. Then a new "summary" in ${L} of the updated profile: natural second person speech, at most 2 short lines, no field-by-field list.
+Reply with only {"patch":{"likes":null,"tastes_by_meal":{"colazione":null,"pranzo":null,"merenda":null,"cena":null,"spuntino":null},"age":null,"weight_kg":null,"health_text":null,"diet_text":null,"never_wants_text":null},"summary":"..."}`; }
+function applyPatch(pt){ const d=S.draft, ch=[]; if(!pt||typeof pt!=="object") return ch;
+ if(typeof pt.likes==="string"&&pt.likes.trim()){ d.likes=pt.likes.trim().slice(0,200); ch.push("likes"); }
+ const tb=pt.tastes_by_meal||{}; for(const k of SLOTS) if(typeof tb[k]==="string"&&tb[k].trim()){ d.tastes[k]=tb[k].trim().slice(0,80); ch.push(k); }
+ const n=x=>Number(x); if(pt.age!=null&&n(pt.age)>=10&&n(pt.age)<=110){ d.age=Math.round(n(pt.age)); ch.push("age"); } if(pt.weight_kg!=null&&n(pt.weight_kg)>=25&&n(pt.weight_kg)<=250){ d.weight=n(pt.weight_kg); ch.push("weight"); }
+ if(typeof pt.health_text==="string"){ d.healthText=pt.health_text; d.health=parseHealth(NONE_RE.test(pt.health_text)?"":pt.health_text); ch.push("health"); }
+ if(typeof pt.diet_text==="string"){ d.diet=parseDiet(pt.diet_text); ch.push("diet"); }
+ if(typeof pt.never_wants_text==="string"){ d.refused=parseRefused(pt.never_wants_text); ch.push("refused"); }
+ return ch; }
+/* senza rete la correzione è letta con le regole locali: salute, dieta, numeri, pasti nominati, ingredienti da evitare */
+function localPatch(text,field){ const d=S.draft, ch=[], t=String(text||"");
+ const h=parseHealth(t); if(HEALTH_KINDS.some(k=>h[k].length)||h.extraIds.length){ const cur=d.health||{allergies:[],intolerances:[],conditions:[],extraIds:[],matched:[]}; HEALTH_KINDS.forEach(k=>cur[k]=[...new Set([...(cur[k]||[]),...h[k]])]); cur.extraIds=[...new Set([...(cur.extraIds||[]),...h.extraIds])]; d.health=cur; d.healthText=((d.healthText||"")+"; "+t).replace(/^; /,""); ch.push("health"); }
+ const dt=parseDiet(t); if(dt.tags.length){ d.diet=dt; ch.push("diet"); }
+ const age=t.match(/(\d{1,3})\s*anni|(\d{1,3})\s*years/i); if(age){ d.age=+(age[1]||age[2]); ch.push("age"); }
+ const kg=t.match(/(\d{2,3}(?:[.,]\d)?)\s*(kg|chil)/i); if(kg){ d.weight=+kg[1].replace(",","."); ch.push("weight"); }
+ const sl=extractSlots(t); for(const [k,x] of Object.entries(sl)){ d.tastes[k]=x.slice(0,80); ch.push(k); }
+ if(/non (voglio|mangio|mi piace)|odio|senza|never|don't want/i.test(t)){ const r=parseRefused(t); if(r.ids.length){ d.refused={text:((d.refused&&d.refused.text)||"")+"; "+t, ids:[...new Set([...((d.refused&&d.refused.ids)||[]),...r.ids])]}; ch.push("refused"); } }
+ if(!ch.length&&field&&SLOTS.includes(field)){ d.tastes[field]=t.slice(0,80); ch.push(field); }
+ if(!ch.length){ d.likes=(d.likes?d.likes+"; ":"")+t.slice(0,120); ch.push("likes"); }
+ return ch; }
+async function startSummary(){
+ const d=S.draft, p=draftProfile("draft"), issues=profileIssues(p); d.sumVer=(d.sumVer||0)+1; d.corrected=false;
+ const finish=(summary,src,clarify,field)=>{ d.summary=summary; d.clarifyQ=clarify||null; d.clarifyField=field||null;
+  log("profile_summary",{text:summary, source:src, local_checks:issues, clarify_question:clarify||null, clarify_field:field||null});
+  S.phase=clarify?"create_clarify":"create_confirm"; render(); focusVoice(); };
+ S.phase="create_summary";
+ if(!remoteReady()){ finish(localSummary(p),"local",null,null); return; }
+ S.pending="summary"; S.pendSeq++; const ctl=new AbortController(); S.ctl=ctl; render();
+ log("model_request",{fn:"profile_summary", location:"remote", model_tier:MODEL_TIER_UI});
+ let r=null, failed=false;
+ try{ r=await S.sample.json(summaryPrompt(p,issues),{modelTier:MODEL_TIER_UI, signal:ctl.signal, cache:false}); }catch(e){ failed=!(e&&e.code==="cancelled"); if(failed) errLine(e); }
+ S.pending=null; S.ctl=null; if(S.phase!=="create_summary"){ render(); return; }
+ const sm=r&&typeof r.summary==="string"?r.summary.trim().slice(0,320):"";
+ if(!sm){ edgeCase("create_summary","failure",failed?"call_failed":"malformed","",{fn:"profile_summary", handled:"local_summary"}); finish(localSummary(p),"local_fallback",null,null); return; }
+ const cq=r.clarify?cleanQ(r.clarify,""):null;
+ finish(sm,"model",cq,cq&&r.field?String(r.field):null);
+}
+const CONFIRM_RE=/^\s*(s[iì]|esatto|giusto|corretto|perfetto|ok|okay|va bene|confermo|certo|proprio così|yes|right|correct|exactly|that's right)(?=$|[\s,.!])/i;
+async function profilePatch(question,answer,field,kind){
+ const d=S.draft; let ch=[], sm="", src="local";
+ if(remoteReady()){
+  S.pending="patch"; S.pendSeq++; const ctl=new AbortController(); S.ctl=ctl; render();
+  log("model_request",{fn:"profile_patch", location:"remote", model_tier:MODEL_TIER_UI, kind});
+  let r=null, failed=false;
+  try{ r=await S.sample.json(patchPrompt(draftProfile("draft"),question,answer),{modelTier:MODEL_TIER_UI, signal:ctl.signal, cache:false}); }catch(e){ failed=!(e&&e.code==="cancelled"); if(failed) errLine(e); }
+  S.pending=null; S.ctl=null;
+  if(r&&r.patch){ ch=applyPatch(r.patch); sm=typeof r.summary==="string"?r.summary.trim().slice(0,320):""; src="model"; }
+  else edgeCase(S.phase,"failure",failed?"call_failed":"malformed",answer,{fn:"profile_patch", handled:"local_rules"});
+ }
+ if(!ch.length) ch=localPatch(answer,field);
+ if(!sm) { sm=localSummary(draftProfile("draft")); src=src==="model"?"model+local_summary":"local"; }
+ return {changed:ch, summary:sm, source:src};
+}
+async function answerClarify(text){
+ const d=S.draft, q=d.clarifyQ, res=await profilePatch(q,text,d.clarifyField,"clarify");
+ log("profile_clarify_answer",{question:q, field:d.clarifyField, answer:text, changed:res.changed, source:res.source});
+ d.summary=res.summary; d.sumVer++; log("profile_summary_updated",{text:res.summary, source:res.source});
+ S.phase="create_confirm"; render(); focusVoice();
+}
+async function answerConfirm(text){
+ const d=S.draft;
+ if(CONFIRM_RE.test(text)&&!/\b(ma|però|tranne|but|except)\b/i.test(text)){ log("profile_confirm",{result:"confirmed", text}); finishProfile(null); return; }
+ if(/^\s*(no|non proprio|non esattamente|sbagliato|nope|not really|wrong)[\s.!]*$/i.test(text)){ log("profile_confirm",{result:"rejected_without_detail", text}); S.phase="create_correct"; render(); focusVoice(); return; }
+ await applyCorrection(text);
+}
+async function applyCorrection(text){
+ const d=S.draft, res=await profilePatch(T("confirmQ"),text,null,"correction");
+ log("profile_confirm",{result:"corrected", text, changed:res.changed, source:res.source});
+ log("profile_summary_reformulated",{text:res.summary, source:res.source});
+ finishProfile(res.summary); // una sola correzione: si riformula e si procede
+}
+function finishProfile(finalSummary){
+ const d=S.draft, key="new"+(++S.createdCount);
+ const p=draftProfile(key); p.summary=finalSummary||d.summary||"";
+ d.finalSummary=finalSummary||null;
  S.profiles[key]=p;
  log("profile_created",{key, ...profileForLog(p), followup_source:d.deepSource});
  S.newKey=key; S.phase="create_done"; render();
@@ -1627,27 +1765,31 @@ Rules for the question: a real question ending with "?", at most 15 words, do no
 Reply with only {"understood":true,"covered":{"colazione":"<few words>"|null,"pranzo":...,"merenda":...,"cena":...,"spuntino":...},"asked_about":"colazione|pranzo|merenda|cena|spuntino|none","question":"..."}`; }
 /* lettura locale (senza rete) dei momenti nominati in una risposta: ogni pezzo di frase va al momento che nomina */
 const SLOT_RE={colazione:/mattin|colazion|sveglia|breakfast|morning/i, pranzo:/pranz|mezzogiorno|lunch|midday|noon/i, merenda:/merend|pomerigg|afternoon/i, cena:/\bsera\b|serat|\bcena|dinner|evening/i, spuntino:/notte|spuntin|tard[io]\b|dopocena|late|night/i};
-function extractSlots(text){ const out={}; String(text||"").split(/[.;,]|\s+(?:e|ed|ma|mentre|and|but|while)\s+/i).map(x=>x.trim()).filter(Boolean).forEach(cl=>{ for(const k of SLOTS) if(SLOT_RE[k].test(cl)) out[k]=out[k]?out[k]+", "+cl:cl; }); return out; }
+const SLOT_WORD="(?:colazion\\w*|pranz\\w*|cena|merend\\w*|spuntin\\w*|sera|serata|mattin\\w*|pomerigg\\w*|notte|breakfast|lunch|dinner|evening|morning|night)";
+/* le frasi si spezzano alle virgole e alle congiunzioni; i pezzi senza pasto si uniscono al pasto vicino
+   ("dolce e leggero al mattino e salato e sostanzioso la sera" -> colazione: dolce e leggero; cena: salato e sostanzioso) */
+function extractSlots(text){ const out={}, has=x=>SLOTS.find(k=>SLOT_RE[k].test(x));
+ for(const piece of String(text||"").split(/[.;,]/)){
+  const atoms=piece.split(/\s+(?:e|ed|ma|mentre|and|but|while)\s+/i).map(x=>x.trim()).filter(Boolean), groups=[]; let cur=[], buf=[];
+  for(const at of atoms){ if(has(at)){ if(cur.some(has)){ groups.push(cur); cur=[...buf,at]; buf=[]; } else { cur=[...cur,...buf,at]; buf=[]; } } else { if(cur.some(has)) buf.push(at); else cur.push(at); } }
+  cur=[...cur,...buf]; if(cur.length) groups.push(cur);
+  for(const g of groups){ const cl=g.join(" e "), k=has(cl); if(!k) continue;
+   const clean=cl.replace(new RegExp("\\b(?:a|al|alla|per|la|il|di|in|at|for)?\\s*"+SLOT_WORD+"\\b","ig"),"").replace(/\s{2,}/g," ").replace(/^[\s:,-]+|[\s:,-]+$/g,"").replace(/^e\s+|\s+e$/,"").trim()||cl;
+   out[k]=out[k]?out[k]+", "+clean:clean; } }
+ return out; }
 function cleanQ(q,likes){ q=String(q||"").trim().replace(/^["«»“”']+|["«»“”']+$/g,"").trim(); if(!q.endsWith("?")) return null;
  const words=q.split(/\s+/).filter(Boolean); if(words.length<3||words.length>15) return null;
  const a=String(likes||"").toLowerCase().trim(); if(a.length>=12&&q.toLowerCase().includes(a)) return null; return q; }
-async function askDeep(){
- const d=S.draft; d.tastes=d.tastes||{}; d.askedAbout=null;
- Object.assign(d.tastes, extractSlots(d.likes));
- const done=(q,src)=>{ understood(); d.deepQ=q; d.deepSource=src; log("profile_followup_question",{text:q, source:src, asked_about:d.askedAbout, covered:Object.keys(d.tastes)}); S.phase="create_deep"; render(); focusVoice(); };
- S.phase="create_likes";
- if(!remoteReady()||!d.likes){ done(T("deepFallback"),"local_fallback"); return; }
- S.pending="deep"; S.pendSeq++; const ctl=new AbortController(); S.ctl=ctl; render();
- log("model_request",{fn:"profile_followup", location:"remote", model_tier:MODEL_TIER_UI});
- let q=null, r=null;
- try{ r=await S.sample.json(deepPrompt(d.likes),{modelTier:MODEL_TIER_UI, signal:ctl.signal, cache:false}); q=cleanQ(r&&r.question,d.likes); if(!q) log("model_response",{fn:"profile_followup", rejected:r}); }
- catch(e){ if(!(e&&e.code==="cancelled")){ log("model_error",{fn:"profile_followup", code:e&&e.code}); errLine(e); } }
- S.pending=null; S.ctl=null; if(S.phase!=="create_likes") { render(); return; }
- if(r&&r.understood===false){ const was=d.likes; d.likes=""; notUnderstood("create_likes","model_off_topic",was); return; }
- if(!q) edgeCase("create_likes","failure",r?"malformed":"call_failed",d.likes,{fn:"profile_followup", handled:"local_fallback_question"});
- if(r&&r.covered&&typeof r.covered==="object") for(const k of SLOTS){ const v=r.covered[k]; if(typeof v==="string"&&v.trim()) d.tastes[k]=v.trim().slice(0,80); }
- if(q&&r&&SLOTS.includes(r.asked_about)) d.askedAbout=r.asked_about;
- done(q||T("deepFallback"), q?"model":"local_fallback");
+/* GUSTI: la prima risposta copre colazione, pranzo e cena; la seconda domanda è fissa e chiede solo la merenda.
+   Nessuna chiamata al modello in questa fase. Lo spuntino resta da completare alla prima composizione in quella fascia. */
+function askDeep(){
+ const d=S.draft; d.tastes=d.tastes||{};
+ const found=extractSlots(d.likes); Object.assign(d.tastes, found);
+ /* se la risposta non nomina i pasti ma ha tre parti ("biscotti, pasta, pesce") le leggo nell'ordine della domanda */
+ if(!Object.keys(found).length){ const parts=d.likes.split(/\s*[;,]\s*|\s+e\s+(?=[^,;]+$)/).map(x=>x.trim()).filter(Boolean); if(parts.length===3) ["colazione","pranzo","cena"].forEach((k,i)=>d.tastes[k]=parts[i].slice(0,80)); }
+ d.askedAbout="merenda"; d.deepQ=T("askMerenda"); d.deepSource="fixed"; understood();
+ log("profile_followup_question",{text:d.deepQ, source:"fixed", asked_about:"merenda", covered:Object.keys(d.tastes).filter(k=>d.tastes[k])});
+ S.phase="create_deep"; render(); focusVoice();
 }
 function startManual(){ S.line=null; openComposition({source:"manual", items:[]}); sayMissing(); render(); }
 function tapScreen(){
@@ -1655,7 +1797,7 @@ function tapScreen(){
  if(S.phase==="rest"){ S.phase="greet"; log("approach",{via:"touch"}); render(); return; }
  if(S.phase==="greet"){ S.phase="profile"; log("profile_screen",{via:"touch"}); render(); return; }
  if(S.phase==="create_done"){ chooseProfile(S.newKey,true); return; }
- if(S.pending==="deep"||S.pending==="mode") return;
+ if(["deep","mode","summary","patch"].includes(S.pending)) return;
  if(S.phase==="listen" && !remoteReady()){ startManual(); return; }
  if(S.phase==="slot_taste"){ log("profile_slot_cancelled",{slot:S.slotAsk&&S.slotAsk.slot}); S.slotAsk=null; S.phase="listen"; render(); return; }
  if(S.phase==="rework"){ log("rework_cancelled",{n:S.rework&&S.rework.n}); S.phase="compose"; S.line=null; S.rework=null; render(); return; }
@@ -1707,7 +1849,7 @@ function composeMsg(c){ const parts=[T("thought")+" "+(c.title||"Pod")];
  if(c.allergyNote) parts.push(c.allergyNote); if(c.source==="model"&&c.corrections.length) parts.push(T("recalculated")); return parts.join(". ")+"."; }
 function stateMsg(){
  const P=S.phase;
- if(S.pending) return {sig:"pend|"+S.pendSeq, text:(S.pending==="deep"||S.pending==="mode")?null:T("thinking")}; // la domanda di approfondimento si prepara in silenzio, con la faccina 3 già in vista
+ if(S.pending) return {sig:"pend|"+S.pendSeq, text:["deep","mode","summary","patch"].includes(S.pending)?null:T("thinking")}; // la domanda di approfondimento si prepara in silenzio, con la faccina 3 già in vista
  switch(P){
   case "greet": return {sig:P, text:T("hello"), click:true};
   case "slot_taste": return {sig:P+"|"+S.slotAsk.slot, text:T("askSlot",{s:T("slotsAt."+S.slotAsk.slot)})};
@@ -1722,7 +1864,10 @@ function stateMsg(){
   case "create_refuse": return {sig:P, text:T("askRefuse")};
   case "create_deep": return {sig:P+"|"+S.pendSeq, text:T("deepIntro")+" "+S.draft.deepQ};
   case "create_allergies": return {sig:P, text:T("askAllergies")};
-  case "create_done": return {sig:P+"|"+S.newKey, text:T("allReady")};
+  case "create_clarify": return {sig:P+"|"+S.draft.id+"|"+S.draft.sumVer, once:true, pre:[S.draft.summary], text:S.draft.clarifyQ};
+  case "create_confirm": return {sig:P+"|"+S.draft.id+"|"+S.draft.sumVer, once:true, pre:[S.draft.summary], text:T("confirmQ")};
+  case "create_correct": return {sig:P+"|"+S.draft.id, once:true, text:T("askCorrect")};
+  case "create_done": return {sig:P+"|"+S.newKey, pre:(S.draft&&S.draft.finalSummary)?[S.draft.finalSummary]:[], text:T("allReady")};
   case "listen": { const t=S.line||(remoteReady()?(prof().name?T("listeningNamed",{n:prof().name}):T("listening")):T("pickOffline")); return {sig:"listen|"+t, text:t, click:!S.line&&!remoteReady()}; }
   case "rework": { const t=S.line||T("reworkAsk"); return {sig:"rework|"+t, text:t}; }
   case "compose": { const c=S.comp; return (c&&S.activeFormulation==="proposed")?{sig:"compose|"+c.id, once:true, text:composeMsg(c), logText:(c.allergyNote&&!LOG_FULL_PROFILE)?composeMsg({...c,allergyNote:null})+" [nota sul profilo non registrata]":null}:null; }
@@ -1870,7 +2015,7 @@ document.addEventListener("keydown",e=>{ if(e.target.tagName==="INPUT"||e.target
 
 /* ---------------- 14. VOCE SIMULATA (scheda sotto il dispositivo) ---------------- */
 const voiceForm=document.getElementById("voiceForm"), voiceIn=document.getElementById("voiceIn");
-const voiceMode=()=>{ if(!S.session||S.session.ended) return "idle"; if(S.phase==="listen") return remoteReady()?"listen":"off"; if(S.phase==="rework") return "rework"; if(S.phase.startsWith("create_")&&S.phase!=="create_done") return S.phase; if(S.phase==="slot_taste") return "slot_taste";
+const voiceMode=()=>{ if(!S.session||S.session.ended) return "idle"; if(S.phase==="listen") return remoteReady()?"listen":"off"; if(S.phase==="rework") return "rework"; if(S.phase.startsWith("create_")&&S.phase!=="create_done"&&S.phase!=="create_summary") return S.phase; if(S.phase==="slot_taste") return "slot_taste";
  if(S.phase==="compose"&&S.fixOffer&&!S.pending) return "fix"; if(S.phase==="close_wait") return "close"; if((S.phase==="load"&&S.load&&S.load.waiting)||(S.phase==="prep"&&S.prep.waitPod)) return "click"; return "idle"; };
 function renderVoice(){
  const m=voiceMode(), on=!["idle","off","close","click"].includes(m)&&!S.pending;
@@ -1902,6 +2047,13 @@ function answerSlotTaste(text){ const a=S.slotAsk, p=prof(); p.tastes[a.slot]=te
 
 /* ---------------- 15. PANNELLO DI RICERCA (sempre aperto) ---------------- */
 const panel=document.getElementById("panel");
+/* apertura e chiusura del pannello: strumento del ricercatore; ogni passaggio va nel log con l'orario */
+const appEl=document.getElementById("app"), ptog=document.getElementById("ptog");
+function setPanel(open,via){ S.ui.panelOpen=!!open; appEl.classList.toggle("pOpen",S.ui.panelOpen); ptog.setAttribute("aria-expanded",String(S.ui.panelOpen)); ptog.setAttribute("aria-label",T("pTog"));
+ document.getElementById("panelWrap").setAttribute("aria-hidden",String(!S.ui.panelOpen)); ptog.title=T("pTog");
+ log("panel_toggle",{open:S.ui.panelOpen, via:via||"arrow"}); }
+ptog.addEventListener("click",()=>setPanel(!S.ui.panelOpen,"arrow"));
+appEl.addEventListener("transitionend",e=>{ if(e.target===appEl&&rig.classList.contains("open")) layoutRig(); });
 /* SCHEDA UTENTE: "non compilato" se la domanda non è stata posta, "nessuna" se la risposta è vuota */
 function cardHTML(p){ const un=`<span class="unf">${T("unfilled")}</span>`, h=p.health||{};
  const tastes=`<div class="field"><span>${T("pTasteSlots")}</span><dl class="kvp">${SLOTS.map(k=>`<dt>${esc(T("slots."+k))}</dt><dd>${p.tastes&&p.tastes[k]?esc(p.tastes[k]):un}</dd>`).join("")}</dl></div>`;
@@ -2044,7 +2196,7 @@ function pickImportFile(onDone){ const inp=document.createElement("input"); inp.
 function startSession(pid,scenario=null){
  S.session={pid, scenario, cycle:1, t0:Date.now(), ended:null, events:[], podVariant:Math.floor(Math.random()*POD_CROPS.length)};
  S.profiles=defaultProfiles(); S.profileKey=null; S.phase="rest"; setup.hidden=true; S.chat=[]; renderChatEmpty();
- log("session_start",{slot_real:realSlot(), participant_id:pid, scenario, language:S.lang, user_agent:navigator.userAgent.slice(0,160), viewport:[innerWidth,innerHeight], sample_available:typeof S.sample==="function", downloads_available:!!S.downloads});
+ log("session_start",{panel_open:!!S.ui.panelOpen, slot_real:realSlot(), participant_id:pid, scenario, language:S.lang, user_agent:navigator.userAgent.slice(0,160), viewport:[innerWidth,innerHeight], sample_available:typeof S.sample==="function", downloads_available:!!S.downloads});
  render();
 }
 /* DUE AMBIENTI. Dentro Claude (artifact): modello e salvataggio arrivano dalle capacità `sample` e `downloads`.
