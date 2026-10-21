@@ -363,7 +363,7 @@ const STRINGS = {
   loc:"Locale", rem:"Remoto", active:"attivo", inactive:"non attivo",
   declare:"Le funzioni segnate Remoto usano un modello remoto: dentro Claude passano da Claude, sul sito dal servizio scelto nel pannello. Senza rete il riassunto del profilo e le correzioni della scheda passano alla versione locale; le altre funzioni remote si fermano e si compone toccando lo schermo. Nell'architettura proposta dalla tesi la traduzione sta a bordo, con il cloud solo come ripiego: il prototipo riproduce la divisione fra funzioni locali e remote, non l'inferenza a bordo.", offlineLocal:"senza rete: versione locale", viaClaude:"via Claude",
   pExpr:"Faccina e stato", noFace:"nessuna faccina su questa schermata", pSim:"Simulazioni a tempo dichiarate: caricamento della ciotola dopo Conferma, ingrediente per ingrediente al clic della persona, e sequenza 5-6 dopo la chiusura del coperchio (3,2 s per passo).",
-  pProfiles:"Profili", pActive:"attivo", pName:"Nome", pKcal:"kcal", pP:"Prot. %", pC:"Carb. %", pF:"Grassi %", pLikes:"Gusti", pAlg:"Allergie", pExcl:"Ingredienti esclusi", none:"nessuno", pAge:"Età", pWeight:"Peso", pIntol:"Intolleranze", pCond:"Condizioni che influenzano la dieta", pDiet:"Dieta", pRefused:"Ingredienti che non vuole mai (scelta, non restrizione)", pFollow:"Approfondimento", pMode:"Profilo", modeQuick:"veloce", modeFull:"completo", unfilled:"non compilato", noneF:"nessuna", years:"anni", kg:"kg", pRules:"Limiti attivi", pSens:"Modalità test: il log esportato contiene la scheda completa. Usare dati fittizi.",
+  pProfiles:"Profili", pActive:"attivo", pName:"Nome", pKcal:"kcal", pP:"Prot. %", pC:"Carb. %", pF:"Grassi %", pLikes:"Gusti", pAlg:"Allergie", pExcl:"Ingredienti esclusi", none:"nessuno", pAge:"Età", pWeight:"Peso", pIntol:"Intolleranze", pCond:"Condizioni che influenzano la dieta", pDiet:"Dieta", pRefused:"Ingredienti che non vuole mai (scelta, non restrizione)", pFollow:"Approfondimento", pMode:"Profilo", modeQuick:"veloce", modeFull:"completo", unfilled:"non compilato", noneF:"nessuna", years:"anni", kg:"kg", pRules:"Limiti attivi", alsoExcl:"anche", pSens:"Modalità test: il log esportato contiene la scheda completa. Usare dati fittizi.",
   pTasteSlots:"Gusti per fascia", pTier:"Modello remoto", tierQuick:"Rapido (risposta in pochi secondi)", tierDefault:"Bilanciato (più accurato, più lento)",
   pLook:"Impostazioni", pCmf:"Scocca", cmf:{greige:"Grigio caldo",black:"Nero",ochre:"Ocra"}, pLang:"Lingua",
   setupTitle:"Prototipo <em>navigabile</em>", setupSub:"Inserisci l'identificativo del partecipante e avvia. La sessione resta in questo browser finché non esporti il log.",
@@ -416,7 +416,7 @@ const STRINGS = {
   loc:"Local", rem:"Remote", active:"active", inactive:"inactive",
   declare:"Functions marked Remote use a remote model: inside Claude through Claude, on the website through the service chosen in the panel. Offline, the profile summary and card corrections switch to the local version; the other remote functions stop and composing happens by tapping the screen. In the architecture the thesis proposes, translation runs on the device, with the cloud only as a fallback: the prototype reproduces the split between local and remote functions, not on-device inference.", offlineLocal:"offline: local version", viaClaude:"via Claude",
   pExpr:"Face and state", noFace:"no face on this screen", pSim:"Declared timed simulations: loading the bowl after Confirm, one ingredient per participant click, and sequence 5-6 after the lid is closed (3.2 s per step).",
-  pProfiles:"Profiles", pActive:"active", pName:"Name", pKcal:"kcal", pP:"Prot. %", pC:"Carb. %", pF:"Fat %", pLikes:"Tastes", pAlg:"Allergies", pExcl:"Excluded ingredients", none:"none", pAge:"Age", pWeight:"Weight", pIntol:"Intolerances", pCond:"Conditions affecting diet", pDiet:"Diet", pRefused:"Never-ingredients (a choice, not a restriction)", pFollow:"Follow-up", pMode:"Profile", modeQuick:"quick", modeFull:"full", unfilled:"not filled in", noneF:"none", years:"years", kg:"kg", pRules:"Active limits", pSens:"Test mode: the exported log contains the full profile. Use fictitious data.",
+  pProfiles:"Profiles", pActive:"active", pName:"Name", pKcal:"kcal", pP:"Prot. %", pC:"Carb. %", pF:"Fat %", pLikes:"Tastes", pAlg:"Allergies", pExcl:"Excluded ingredients", none:"none", pAge:"Age", pWeight:"Weight", pIntol:"Intolerances", pCond:"Conditions affecting diet", pDiet:"Diet", pRefused:"Never-ingredients (a choice, not a restriction)", pFollow:"Follow-up", pMode:"Profile", modeQuick:"quick", modeFull:"full", unfilled:"not filled in", noneF:"none", years:"years", kg:"kg", pRules:"Active limits", alsoExcl:"also", pSens:"Test mode: the exported log contains the full profile. Use fictitious data.",
   pTasteSlots:"Tastes by moment", pTier:"Remote model", tierQuick:"Quick (answers in a few seconds)", tierDefault:"Balanced (more accurate, slower)",
   pLook:"Settings", pCmf:"Shell", cmf:{greige:"Warm grey",black:"Black",ochre:"Ochre"}, pLang:"Language",
   setupTitle:"Navigable <em>prototype</em>", setupSub:"Enter the participant identifier and start. The session stays in this browser until you export the log.",
@@ -794,9 +794,21 @@ function parseHealth(text){
  for(const k of HEALTH_KINDS) for(const key in HEALTH[k]){ const m=t.match(HEALTH[k][key].re); if(m){ out[k].push(key); out.matched.push(m[0]); } }
  /* parole riferite a singoli ingredienti (ceci, pomodoro, avena...): vincolo anche queste */
  const pa=parseAllergies(t); pa.excl.forEach(i=>out.extraIds.push(i)); out.matched.push(...pa.matched);
+ /* qualunque ingrediente della tabella nominato nella risposta (banana, kiwi, pomodoro...) diventa un'esclusione:
+    un'allergia scritta a parole non deve mai poter rientrare in una proposta */
+ const ni=namedIngredients(t, HEALTH_NAME_STOP); ni.ids.forEach(i=>out.extraIds.push(i)); out.matched.push(...ni.words);
+ out.extraIds=[...new Set(out.extraIds)];
  out.matched=[...new Set(out.matched)]; return out;
 }
 /* ingredienti rifiutati per scelta: confronto per radice fra le parole della risposta e i nomi della tabella */
+/* parole troppo generiche per indicare un ingrediente in una risposta sulla salute ("frutta a guscio" non è "frutti rossi") */
+const HEALTH_NAME_STOP=new Set(["frutta","frutti","secca","secco","guscio","verdura","verdure","cereali","legumi","grano","carne","dolci","zucchero","zuccheri","salsa","fresca","fresco","sale"]);
+/* ingredienti nominati in un testo: confronto per radice (5 lettere) fra le parole del testo e quelle dei nomi in tabella */
+function namedIngredients(text,extraStop){ const t=String(text||"").toLowerCase(); const ids=new Set(), words=new Set();
+ const ws=t.split(/[^\p{L}]+/u).filter(w=>w.length>=4&&!(extraStop&&extraStop.has(w))); const stems=new Map(ws.map(w=>[w.slice(0,5),w]));
+ for(const i of INGREDIENTS) for(const L of ["it","en"]){ const toks=String(STRINGS[L].ing[i.id]||"").toLowerCase().split(/[^\p{L}]+/u).filter(w=>w.length>=4&&!NAME_STOP.has(w)&&!(extraStop&&extraStop.has(w)));
+  for(const tk of toks){ const st=tk.slice(0,5); if(stems.has(st)){ ids.add(i.id); words.add(stems.get(st)); } } }
+ return {ids:[...ids], words:[...words]}; }
 const NAME_STOP=new Set(["polvere","farina","aroma","liofilizzato","liofilizzata","macinato","macinati","vegetale","proteine","isolato","concentrato","semi","fiocchi","latte","scorza","bacche","powder","flour","flavour","plant","protein","seeds"]);
 function parseRefused(text){
  const t=String(text||"").toLowerCase(); if(!t.trim()||NONE_RE.test(t)) return {text:String(text||""), ids:[]};
@@ -818,6 +830,8 @@ function deriveConstraints(p){
  const h=p.health||{};
  for(const k of HEALTH_KINDS) for(const key of (h[k]||[])){ const r=HEALTH[k][key]; if(!r) continue; (r.alg||[]).forEach(a=>alg.add(a)); (r.ids||[]).forEach(i=>excl.add(i)); for(const q in (r.rules||{})) min(q,r.rules[q]); }
  (h.extraIds||[]).forEach(i=>excl.add(i));
+ /* anche le parole della risposta sulla salute, rilette ogni volta: vale per i profili ripresi da file o creati prima */
+ if(p.allergyText&&!NONE_RE.test(p.allergyText)) namedIngredients(p.allergyText,HEALTH_NAME_STOP).ids.forEach(i=>excl.add(i));
  for(const tag of ((p.diet&&p.diet.tags)||[])){ const r=DIET_RULES.find(x=>x.tag===tag); if(!r) continue; (r.alg||[]).forEach(a=>alg.add(a)); (r.ids||[]).forEach(i=>excl.add(i)); for(const q in (r.rules||{})) min(q,r.rules[q]); }
  p.alg=[...alg]; p.excl=[...excl].filter(i=>ING[i]); p.refusedIds=((p.refused&&p.refused.ids)||[]).filter(i=>ING[i]); p.rules=rules;
  if(p.base) { const sp=capSplit(p.base.p,p.base.c,p.base.f,rules); p.p=sp.p; p.c=sp.c; p.f=sp.f; }
@@ -1118,6 +1132,7 @@ function allergyBlock(p){
  if(lab("intolerances").length) parts.push("intolerances: "+lab("intolerances").join(", "));
  if(lab("conditions").length) parts.push("conditions affecting diet: "+lab("conditions").join(", "));
  if(p.diet&&p.diet.text) parts.push("diet: «"+p.diet.text+"»");
+ if(p.allergyText&&!NONE_RE.test(p.allergyText)) parts.push("health answer in their words: «"+p.allergyText+"» (never use anything it names)");
  const ex=[...p.alg.map(a=>T("alg."+a)),...(p.excl||[]).map(nm)], ref=(p.refusedIds||[]).map(nm);
  let out="";
  if(parts.length||ex.length) out+=`DECLARED RESTRICTIONS of this person (${parts.join("; ")||"see excluded ingredients"}). Excluded for these reasons: ${ex.join(", ")||"none"}. They are already removed from the list below. Never use them, never name them in the title or in why, even if the request asks for them: replace a requested ingredient with a safe one that plays the same role, and name the dish after what is really in it.`;
@@ -1226,7 +1241,7 @@ const ALG_WORDS={glutine:"glutin|frument|gran[oi]|farro|orzo|segale|seitan|glute
 function allergyRegex(p){
  const parts=[]; p.alg.forEach(a=>ALG_WORDS[a]&&parts.push(ALG_WORDS[a]));
  (p.allergyWords||[]).forEach(w=>{ const t=String(w).trim().toLowerCase().replace(/[.*+?^${}()|[\]\\]/g,""); if(t.length>=3) parts.push(t); });
- [...p.excl,...(p.refusedIds||[])].forEach(id=>{ const t=nm(id).split(/\s+/).pop().toLowerCase(); if(t.length>=4&&!NAME_STOP.has(t)) parts.push(t.slice(0,-1)); });
+ [...p.excl,...(p.refusedIds||[])].forEach(id=>{ const t=nm(id).toLowerCase().split(/[^\p{L}]+/u).find(w=>w.length>=4&&!NAME_STOP.has(w)); if(t) parts.push(t.slice(0,-1).replace(/[.*+?^${}()|[\]\\]/g,"")); });
  return parts.length?new RegExp("("+parts.join("|")+")","i"):null;
 }
 function guardAllergyText(title,why,p){
@@ -1318,7 +1333,11 @@ async function sendRework(text){
  S.rework=null;
  const g=guardAllergyText(String(r.title||c.title||"").slice(0,80), String(r.why||"").slice(0,160), prof());
  if(g.hit) log("guardrail_fired",{rule:"allergen_text", title_changed:true, why_removed:!g.why, source:"model_rework"});
- openComposition({source:"model", items:v.items, phrase:c.phrase, title:g.title, why:g.why, allergyNote:g.hit?T("allergyNote",{x:g.hit.toLowerCase()}):null, corrections:v.corrections, proposal:raw, turns:[...c.turns,{role:"rework", text}], reworkN:rw.n, targets:tg});
+ const reRx=allergyRegex(prof()), reqHit=reRx&&(text.match(new RegExp("[\\p{L}']*"+reRx.source+"[\\p{L}']*","iu"))||[])[0];
+ const removedR=v.corrections.filter(x=>x.kind==="removed_excluded").map(x=>nm(x.id));
+ if(reqHit||removedR.length){ log("guardrail_fired",{rule:"request_names_excluded", source:"rework", removed:v.corrections.filter(x=>x.kind==="removed_excluded").map(x=>x.id)}); edgeCase("rework","understood_cannot","request_names_excluded",text,{guardrail:"profile_exclusion", answered_by:"guardrail note in the proposal"}); }
+ const noteR=g.hit||(reqHit?reqHit.replace(/^(all'|dell'|l')/i,""):null)||(removedR.length?removedR.join(", "):null);
+ openComposition({source:"model", items:v.items, phrase:c.phrase, title:g.title, why:g.why, allergyNote:noteR?T("allergyNote",{x:noteR.toLowerCase()}):null, corrections:v.corrections, proposal:raw, turns:[...c.turns,{role:"rework", text}], reworkN:rw.n, targets:tg});
 }
 async function fetchWhy(){
  const c=S.comp; if(!c||!remoteReady()||S.pending) return;
@@ -1601,7 +1620,7 @@ function validate(phase,raw){
   case "create_mode": if(bc) return {ok:false,reason:bc}; return {ok:true, value:t};
   case "create_age": { if(bc&&bc!=="gibberish") return {ok:false,reason:bc}; const n=readNumber(t); if(n==null) return {ok:false,reason:"wrong_type"}; if(n<10||n>110) return {ok:false,reason:"out_of_range"}; return {ok:true, value:Math.round(n)}; }
   case "create_weight": { if(bc&&bc!=="gibberish") return {ok:false,reason:bc}; const n=readNumber(t); if(n==null) return {ok:false,reason:"wrong_type"}; if(n<25||n>250) return {ok:false,reason:"out_of_range"}; return {ok:true, value:Math.round(n*10)/10}; }
-  case "create_health": { if(bc) return {ok:false,reason:bc}; if(isNone) return {ok:true, value:""}; const h=parseHealth(t); if(!HEALTH_KINDS.some(k=>h[k].length)&&!h.extraIds.length) return {ok:false,reason:"not_recognised"}; return {ok:true, value:t}; }
+  case "create_health": { if(bc) return {ok:false,reason:bc}; if(isNone) return {ok:true, value:""}; const h=parseHealth(t); if(!HEALTH_KINDS.some(k=>h[k].length)&&!h.extraIds.length&&!/allerg|intoller|celiac|malatt|soffro|non posso mangiare|non tollero|mi fa male|allergic|intoleran|can't eat|cannot eat/i.test(t)) return {ok:false,reason:"not_recognised"}; return {ok:true, value:t}; }
   case "create_diet": { if(bc) return {ok:false,reason:bc}; if(isNone) return {ok:true, value:""}; if(!parseDiet(t).tags.length) return {ok:false,reason:"not_recognised"}; return {ok:true, value:t}; }
   case "create_refuse": { if(bc) return {ok:false,reason:bc}; if(isNone) return {ok:true, value:""}; if(!parseRefused(t).ids.length) return {ok:false,reason:"not_recognised"}; return {ok:true, value:t}; }
   case "create_likes": case "slot_taste": { if(bc) return {ok:false,reason:bc}; if(t.length<3) return {ok:false,reason:"too_short"};
@@ -2116,7 +2135,8 @@ function cardHTML(p){ const un=`<span class="unf">${T("unfilled")}</span>`, h=p.
  const tastes=`<div class="field"><span>${T("pTasteSlots")}</span><dl class="kvp">${SLOTS.map(k=>`<dt>${esc(T("slots."+k))}</dt><dd>${p.tastes&&p.tastes[k]?esc(p.tastes[k]):un}</dd>`).join("")}</dl></div>`;
  const val=(x,f)=>x==null?un:f(x);
  const chips=(kind)=>{ const cur=h[kind]; return `<div class="chips">${Object.keys(HEALTH[kind]).map(k=>`<button class="chip" type="button" data-hk="${kind}" data-hv="${k}" aria-pressed="${!!(cur&&cur.includes(k))}">${esc(hLabel(kind,k))}</button>`).join("")}</div>`; };
- const hRow=(kind,label)=>`<div class="field"><span>${label}: ${h[kind]==null?un:(h[kind].length?"":`<span class="unf">${T("noneF")}</span>`)}</span>${chips(kind)}</div>`;
+ const extraNames=(h.extraIds||[]).filter(i=>ING[i]).map(nm), extraTxt=extraNames.length?` <span class="unf">(${esc(T("alsoExcl"))}: ${esc(extraNames.join(", "))})</span>`:"";
+ const hRow=(kind,label)=>`<div class="field"><span>${label}: ${h[kind]==null?un:(h[kind].length||(kind==="allergies"&&extraNames.length)?"":`<span class="unf">${T("noneF")}</span>`)}${kind==="allergies"?extraTxt:""}</span>${chips(kind)}</div>`;
  const ex=[...p.alg.map(a=>T("alg."+a)),...(p.excl||[]).map(nm)];
  const rules=Object.entries(p.rules||{}).map(([k,v])=>({pPctMin:`proteine ≥ ${v}% kcal`,kcalFactor:`energia × ${v}`,fiberMin:`fibra ≥ ${v} g`,fatMaxFrac:`grassi ≤ ${Math.round(v*100)}%`,fiberMax:`fibra ≤ ${v} g`,saltyMaxG:`sale ≤ ${v} g`,pPctMax:`proteine ≤ ${v}% kcal`,cPctMax:`carboidrati ≤ ${v}% kcal`}[k]||k));
  return `<label class="field">${T("pLikes")}<input data-f="likes" type="text" value="${esc(p.likes)}"></label>${tastes}
