@@ -1834,6 +1834,17 @@ const SLOT_RE={colazione:/mattin|colazion|sveglia|breakfast|morning/i, pranzo:/p
 const SLOT_WORD="(?:colazion\\w*|pranz\\w*|cena|merend\\w*|spuntin\\w*|sera|serata|mattin\\w*|pomerigg\\w*|notte|breakfast|lunch|dinner|evening|morning|night)";
 /* le frasi si spezzano alle virgole e alle congiunzioni; i pezzi senza pasto si uniscono al pasto vicino
    ("dolce e leggero al mattino e salato e sostanzioso la sera" -> colazione: dolce e leggero; cena: salato e sostanzioso) */
+/* RISPOSTA SU COLAZIONE, PRANZO E CENA. Le virgole separano i pasti. Un pezzo che nomina il pasto va a quel pasto;
+   i pezzi che non lo nominano vanno, nell'ordine in cui sono scritti, ai pasti della domanda rimasti liberi
+   (colazione, pranzo, cena). "latte e biscotti, pranzo proteico e cena leggera" -> colazione: latte e biscotti. */
+function extractMeals(text){ const out={}, free=[];
+ for(const piece of String(text||"").split(/\s*[;,]\s*|\.\s+/).map(x=>x.trim()).filter(Boolean)){
+  const f=extractSlots(piece); if(Object.keys(f).length){ for(const [k,v] of Object.entries(f)) out[k]=out[k]?out[k]+", "+v:v; } else free.push(piece); }
+ const open=["colazione","pranzo","cena"].filter(k=>!out[k]);
+ /* una frase sola senza pasti ("mangio di tutto") non si assegna: resta nei gusti generali */
+ if(!Object.keys(out).length&&free.length<2) return out;
+ free.slice(0,open.length).forEach((x,i)=>out[open[i]]=x.replace(/^(e|ed|poi|and)\s+/i,"").slice(0,80));
+ return out; }
 function extractSlots(text){ const out={}, has=x=>SLOTS.find(k=>SLOT_RE[k].test(x));
  for(const piece of String(text||"").split(/[.;,]/)){
   const atoms=piece.split(/\s+(?:e|ed|ma|mentre|and|but|while)\s+/i).map(x=>x.trim()).filter(Boolean), groups=[]; let cur=[], buf=[];
@@ -1850,9 +1861,7 @@ function cleanQ(q,likes){ q=String(q||"").trim().replace(/^["«»“”']+|["«�
    Nessuna chiamata al modello in questa fase. Lo spuntino resta da completare alla prima composizione in quella fascia. */
 function askDeep(){
  const d=S.draft; d.tastes=d.tastes||{};
- const found=extractSlots(d.likes); Object.assign(d.tastes, found);
- /* se la risposta non nomina i pasti ma ha tre parti ("biscotti, pasta, pesce") le leggo nell'ordine della domanda */
- if(!Object.keys(found).length){ const parts=d.likes.split(/\s*[;,]\s*|\s+e\s+(?=[^,;]+$)/).map(x=>x.trim()).filter(Boolean); if(parts.length===3) ["colazione","pranzo","cena"].forEach((k,i)=>d.tastes[k]=parts[i].slice(0,80)); }
+ Object.assign(d.tastes, extractMeals(d.likes));
  d.askedAbout="merenda"; d.deepQ=T("askMerenda"); d.deepSource="fixed"; understood();
  log("profile_followup_question",{text:d.deepQ, source:"fixed", asked_about:"merenda", covered:Object.keys(d.tastes).filter(k=>d.tastes[k])});
  S.phase="create_deep"; render(); focusVoice();
