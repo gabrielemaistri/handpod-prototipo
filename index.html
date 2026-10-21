@@ -322,7 +322,7 @@ const STRINGS = {
  it:{
   listening:"Cosa prepariamo", listeningNamed:"Hey {n}, cosa prepariamo?", greetTime:"Sono le {h}, {q}", greetQ:{colazione:"pensiamo alla colazione?",pranzo:"pensiamo al pranzo?",merenda:"pensiamo alla merenda?",cena:"pensiamo alla cena?",spuntino:"pensiamo a uno spuntino?"},
   sumOpen:"Quindi, riassumendo,", swipeNote:"(swipe per leggere ingredienti e valori nutrizionali)", endNote:"(click sulla freccia di destra per continuare o terminare la sessione)",
-  pEndBox:"Fine della Pod", pNewComp:"Nuova composizione", pNewCompHint:"Stesso profilo, la conversazione resta.", pCloseSes:"Chiudi la sessione ed esporta il log", pCloseHint:"Salva il log JSON e torna al riposo per un nuovo partecipante.",
+  pEndBox:"Fine della Pod", pNewComp:"Continua la sessione", pNewCompHint:"Stesso partecipante: la macchina torna al riposo e i profili creati restano fra i cerchi della scelta profilo.", pCloseSes:"Termina la sessione ed esporta il log", pCloseHint:"Salva il log JSON e riparte da zero dall'identificativo: i profili creati in questa sessione non restano.",
   sesClosed:"Sessione terminata · file del log generato: {f}", sesCloseFail:"Il log non è stato salvato: la sessione resta aperta.", thinking:"Sto pensando", thought:"Ho pensato a", confirm:"Conferma", rework:"Rielabora", guest:"ospite",
   reworkOff:"Senza rete non riformulo a parole: modifica gli ingredienti",
   askName:"Come ti chiami", askLikes:"Ciao {n}, impariamo a conoscerci. Che gusti hai? Per esempio sapori decisi, note speziate o cose poco dolci.", askAllergies:"Hai qualche allergia?", allReady:"Perfetto, è tutto pronto!",
@@ -375,7 +375,7 @@ const STRINGS = {
  en:{
   listening:"What shall we make", listeningNamed:"Hey {n}, what shall we make?", greetTime:"It's {h}, {q}", greetQ:{colazione:"shall we think about breakfast?",pranzo:"shall we think about lunch?",merenda:"shall we think about an afternoon snack?",cena:"shall we think about dinner?",spuntino:"shall we think about a snack?"},
   sumOpen:"So, to sum up,", swipeNote:"(swipe to read ingredients and nutrition values)", endNote:"(click the arrow on the right to continue or end the session)",
-  pEndBox:"End of the Pod", pNewComp:"New composition", pNewCompHint:"Same profile, the conversation stays.", pCloseSes:"Close the session and export the log", pCloseHint:"Saves the JSON log and goes back to rest for a new participant.",
+  pEndBox:"End of the Pod", pNewComp:"Continue the session", pNewCompHint:"Same participant: the machine goes back to rest and the profiles created stay among the profile circles.", pCloseSes:"End the session and export the log", pCloseHint:"Saves the JSON log and starts again from the identifier: profiles created in this session are not kept.",
   sesClosed:"Session ended · log file generated: {f}", sesCloseFail:"The log was not saved: the session stays open.", thinking:"I'm thinking", thought:"I thought of", confirm:"Confirm", rework:"Rework", guest:"guest",
   reworkOff:"Offline I can't rephrase it: edit the ingredients",
   askName:"What's your name", askLikes:"Hi {n}, let's get to know each other. What flavours do you like? For example bold tastes, spicy notes, things that aren't too sweet.", askAllergies:"Do you have any allergies?", allReady:"Perfect, all set!",
@@ -1463,6 +1463,7 @@ async function closeSession(){
  clearTimers(); device.classList.remove("podded"); powderLayers.innerHTML="";
  Object.assign(S,{phase:"rest", comp:null, load:null, prep:{step:-1}, activeFormulation:null, profileKey:null, fixOffer:null, slotAsk:null, line:null, rework:null, waitSince:null, reqSlot:null});
  setPanel(false,"session_closed"); render();
+ S.profiles=defaultProfiles(); S.createdCount=0; // si riparte da zero: i profili creati non restano
  setTimeout(()=>{ setup.hidden=false; renderSetup(); },2500);
 }
 function logFilename(){ const stamp=new Date(S.session.t0).toISOString().slice(0,16).replace(/[:T]/g,"-"), safe=String(S.session.pid).replace(/[^\w-]+/g,"_").slice(0,40)||"p"; return `handpod_${safe}_${stamp}.json`; }
@@ -2169,7 +2170,7 @@ panel.addEventListener("click",async e=>{
  if(b.id==="btnCancel"){ if(S.ctl) S.ctl.abort(); return; }
  if(b.id==="btnRest"){ commitEdit(); clearTimers(); S.activeFormulation=null; log("researcher_reset",{}); S.phase="rest"; S.comp=null; S.line=null; S.profileKey=null; S.fixOffer=null; S.load=null; S.prep.step=-1; render(); return; }
  if(b.id==="btnContinue"){ continueCycle(); return; }
- if(b.id==="btnNewComp"){ newComposition(); return; }
+ if(b.id==="btnNewComp"){ continueCycle(); setPanel(false,"continue"); return; }
  if(b.id==="btnCloseSes"){ closeSession(); return; }
  if(b.id==="btnImport"){ pickImportFile(msg=>{ if(msg){ S.ui.exportMsg=msg; renderPanel(); } }); return; }
  if(b.id==="apiSave"){ const c=apiCfg(), pv=c.provider, k=document.getElementById("apiKeyIn").value.trim(), q=document.getElementById("apiQuickIn").value.trim(), d=document.getElementById("apiDefIn").value.trim();
