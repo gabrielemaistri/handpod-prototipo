@@ -1477,7 +1477,7 @@ function continueCycle(){
  S.session.cycle=(S.session.cycle||1)+1; log("cycle_continue",{cycle:S.session.cycle, profiles_kept:Object.keys(S.profiles).filter(k=>k!=="guest")});
  device.classList.remove("podded"); powderLayers.innerHTML=""; scoopEl.getAnimations().forEach(a=>a.cancel()); streamEl.getAnimations().forEach(a=>a.cancel());
  Object.assign(S,{phase:"rest", comp:null, load:null, prep:{step:-1}, activeFormulation:null, profileKey:null, fixOffer:null, slotAsk:null, line:null, rework:null, waitSince:null, reqSlot:null});
- render();
+ render(); noteLine("clickNote");
 }
 /* Colore delle polveri: tinta, saturazione e luminosità di base per classe (palette terrosa, smorzata,
    saturazione <= 42%, luminosità >= 30% per restare leggibile sul fondo nero della ciotola), più una
@@ -2250,7 +2250,7 @@ function importSession(L){
  lastSig=null; setup.hidden=true;
  log("session_resumed",{from_events:L.events.length, profiles:Object.keys(out), cycle:S.session.cycle, partial_profiles:partial});
  S.ui.exportMsg=T("pImportOk",{p:S.session.pid})+(partial?" "+T("pImportPartial"):"");
- render();
+ render(); noteLine("clickNote");
 }
 function pickImportFile(onDone){ const inp=document.createElement("input"); inp.type="file"; inp.accept=".json,application/json";
  inp.addEventListener("change",async()=>{ const f=inp.files&&inp.files[0]; if(!f) return; let msg=null;
@@ -2260,7 +2260,7 @@ function startSession(pid,scenario=null){
  S.session={pid, scenario, cycle:1, t0:Date.now(), ended:null, events:[], podVariant:Math.floor(Math.random()*POD_CROPS.length)};
  S.profiles=defaultProfiles(); S.profileKey=null; S.phase="rest"; setup.hidden=true; S.chat=[]; renderChatEmpty();
  log("session_start",{panel_open:!!S.ui.panelOpen, slot_real:realSlot(), participant_id:pid, scenario, language:S.lang, user_agent:navigator.userAgent.slice(0,160), viewport:[innerWidth,innerHeight], sample_available:typeof S.sample==="function", downloads_available:!!S.downloads});
- render();
+ render(); noteLine("clickNote"); // la macchina è a riposo e aspetta un tocco: lo dice l'annotazione, prima del "Ciao"
 }
 /* DUE AMBIENTI. Dentro Claude (artifact): modello e salvataggio arrivano dalle capacità `sample` e `downloads`.
    Fuori da Claude (sito, es. GitHub Pages): il salvataggio è un normale download del browser e il modello è l'API
