@@ -201,6 +201,7 @@ body.closable,.device.closable{cursor:pointer}
 .msg.m{align-self:flex-start}
 .msg.m .tx{background:var(--bg);border:1px solid var(--line);border-top-left-radius:4px}
 .msg.u{align-self:flex-end;align-items:flex-end}
+.endbox{border-top:1px solid var(--line);padding-top:14px}
 .msg-sep{align-self:center;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-2);padding:4px 0}
 .msg .clk{display:block;margin:3px 0 0 6px;font-size:11.5px;font-style:italic;letter-spacing:.02em;color:var(--clk)}
 .msg.u .tx{background:var(--fg);color:var(--bg);border-top-right-radius:4px}
@@ -288,7 +289,7 @@ details summary{cursor:pointer;font-size:13.5px}
 
 <script>
 /* =====================================================================
-   HandPod, prototipo navigabile, versione 13.
+   HandPod, prototipo navigabile, versione 14.
    Divisione del lavoro come nella Tabella 6.2 della tesi:
    LOCALE (in questa pagina, nessuna rete): calcolo nutrizionale e ribilanciamento,
    vincoli di sicurezza, profili e loro creazione (incluso il riconoscimento delle
@@ -319,7 +320,10 @@ const POD_IMG={w:2480,h:732}, POD_CROPS=[{x:83,y:114,s:544,name:"terracotta"},{x
 const DEFAULT_LANG = "it";
 const STRINGS = {
  it:{
-  listening:"Cosa prepariamo", listeningNamed:"Hey {n}, cosa prepariamo?", thinking:"Sto pensando", thought:"Ho pensato a", confirm:"Conferma", rework:"Rielabora", guest:"ospite",
+  listening:"Cosa prepariamo", listeningNamed:"Hey {n}, cosa prepariamo?", greetTime:"Sono le {h}, {q}", greetQ:{colazione:"pensiamo alla colazione?",pranzo:"pensiamo al pranzo?",merenda:"pensiamo alla merenda?",cena:"pensiamo alla cena?",spuntino:"pensiamo a uno spuntino?"},
+  sumOpen:"Quindi, riassumendo,", swipeNote:"(swipe per leggere ingredienti e valori nutrizionali)", endNote:"(click sulla freccia di destra per continuare o terminare la sessione)",
+  pEndBox:"Fine della Pod", pNewComp:"Nuova composizione", pNewCompHint:"Stesso profilo, la conversazione resta.", pCloseSes:"Chiudi la sessione ed esporta il log", pCloseHint:"Salva il log JSON e torna al riposo per un nuovo partecipante.",
+  sesClosed:"Sessione terminata · file del log generato: {f}", sesCloseFail:"Il log non è stato salvato: la sessione resta aperta.", thinking:"Sto pensando", thought:"Ho pensato a", confirm:"Conferma", rework:"Rielabora", guest:"ospite",
   reworkOff:"Senza rete non riformulo a parole: modifica gli ingredienti",
   askName:"Come ti chiami", askLikes:"Ciao {n}, impariamo a conoscerci. Che gusti hai? Per esempio sapori decisi, note speziate o cose poco dolci.", askAllergies:"Hai qualche allergia?", allReady:"Perfetto, è tutto pronto!",
   askMode:"Ciao {n}, impariamo a conoscerci. Preferisci un profilo completo o partiamo veloci e creiamo subito? Possiamo approfondire quando vuoi.",
@@ -369,7 +373,10 @@ const STRINGS = {
   screens:["6.1 proposta","7.1 ingredienti","8.1 valori"]
  },
  en:{
-  listening:"What shall we make", listeningNamed:"Hey {n}, what shall we make?", thinking:"I'm thinking", thought:"I thought of", confirm:"Confirm", rework:"Rework", guest:"guest",
+  listening:"What shall we make", listeningNamed:"Hey {n}, what shall we make?", greetTime:"It's {h}, {q}", greetQ:{colazione:"shall we think about breakfast?",pranzo:"shall we think about lunch?",merenda:"shall we think about an afternoon snack?",cena:"shall we think about dinner?",spuntino:"shall we think about a snack?"},
+  sumOpen:"So, to sum up,", swipeNote:"(swipe to read ingredients and nutrition values)", endNote:"(click the arrow on the right to continue or end the session)",
+  pEndBox:"End of the Pod", pNewComp:"New composition", pNewCompHint:"Same profile, the conversation stays.", pCloseSes:"Close the session and export the log", pCloseHint:"Saves the JSON log and goes back to rest for a new participant.",
+  sesClosed:"Session ended · log file generated: {f}", sesCloseFail:"The log was not saved: the session stays open.", thinking:"I'm thinking", thought:"I thought of", confirm:"Confirm", rework:"Rework", guest:"guest",
   reworkOff:"Offline I can't rephrase it: edit the ingredients",
   askName:"What's your name", askLikes:"Hi {n}, let's get to know each other. What flavours do you like? For example bold tastes, spicy notes, things that aren't too sweet.", askAllergies:"Do you have any allergies?", allReady:"Perfect, all set!",
   askMode:"Hi {n}, let's get to know each other. Would you like a full profile, or shall we go quick and create it now? We can go deeper whenever you like.",
@@ -882,7 +889,16 @@ const remoteReady=()=>S.online && typeof S.sample==="function" && !S.remoteBlock
 /* moltiplicatore dell'energia per Pod del profilo, per fascia: valori di progetto */
 const SLOT_KCAL={colazione:0.85, pranzo:1.15, merenda:0.6, cena:1.0, spuntino:0.5};
 function realSlot(d=new Date()){ const h=d.getHours(); return h>=4&&h<11?"colazione":h>=11&&h<15?"pranzo":h>=15&&h<18?"merenda":h>=18&&h<21?"cena":"spuntino"; }
-function slotInfo(){ const d=new Date(), real=realSlot(d); return {real, used:S.slotForced||real, forced:!!S.slotForced, clock:d.toTimeString().slice(0,5)}; }
+/* fascia usata: quella chiesta nella richiesta, altrimenti quella forzata dal ricercatore, altrimenti quella dell'orologio */
+function slotInfo(){ const d=new Date(), real=realSlot(d); return {real, used:S.reqSlot||S.slotForced||real, forced:!!S.slotForced, from_request:!!S.reqSlot, source:S.reqSlot?"request":(S.slotForced?"forced":"clock"), clock:d.toTimeString().slice(0,5)}; }
+/* ora detta nel saluto: quella reale; se la fascia è forzata, un'ora plausibile per quella fascia (valori di progetto) */
+const SLOT_CLOCK={colazione:"8:00", pranzo:"13:00", merenda:"16:30", cena:"20:00", spuntino:"22:30"};
+const clock24=d=>d.getHours()+":"+String(d.getMinutes()).padStart(2,"0");
+function greeting(){ const p=prof(), d=new Date(), k=S.slotForced||realSlot(d), h=S.slotForced?SLOT_CLOCK[k]:clock24(d);
+ const head=p.name?T("listeningNamed",{n:p.name}):T("listening")+"?";
+ return {text:head+" "+T("greetTime",{h, q:T("greetQ."+k)}), extra:{greeting_slot:k, clock_real:clock24(d), clock_shown:h, slot_forced:!!S.slotForced}}; }
+/* "cena", "a pranzo", "colazione"... nella richiesta: la macchina segue la persona e cambia fascia */
+function slotFromRequest(t){ const k=SLOTS.find(x=>SLOT_RE[x].test(String(t||""))); return k||null; }
 const slotKcal=p=>Math.round(p.kcal*SLOT_KCAL[slotInfo().used]*((p.rules&&p.rules.kcalFactor)||1)); // fascia e, se c'è, dieta o condizione
 const tprof=()=>{ const p=prof(); return (S.comp&&S.comp.targets)?{...p, ...S.comp.targets}:{...p, kcal:slotKcal(p)}; };
 function clampTargets(t,p){
@@ -933,6 +949,7 @@ function buildLog(){
    reworks: ev.filter(e=>e.type==="rework").map(e=>({n:e.n, text:e.text, origin:e.origin, type_model:e.request_type_model, type_local_heuristic:e.request_type_local_heuristic, added:e.diff.added.map(x=>x.id), removed:e.diff.removed.map(x=>x.id), changed:e.diff.changed.map(x=>x.id), unchanged:e.diff.unchanged.length, person_set_kept:e.person_set_kept.length+"/"+e.person_set_total})),
    reworks_attempted_offline: cnt("rework_unavailable_offline"), reworks_cancelled: cnt("rework_cancelled"),
    profile_checks: ev.filter(e=>["profile_summary","profile_clarify_answer","profile_confirm","profile_summary_updated","profile_summary_reformulated"].includes(e.type)).map(e=>({type:e.type, text:e.text, question:e.question||e.clarify_question, field:e.field||e.clarify_field, answer:e.answer, result:e.result, source:e.source, at:e.t})),
+   greetings: ev.filter(e=>e.type==="chat_message"&&e.greeting_slot).map(e=>({slot:e.greeting_slot, clock_real:e.clock_real, clock_shown:e.clock_shown, forced:e.slot_forced, at:e.t})),
    panel_toggles: ev.filter(e=>e.type==="panel_toggle").map(e=>({open:e.open, at:e.t})),
    edge_cases: ev.filter(e=>e.type==="edge_case").map(e=>({phase:e.phase, behaviour:e.behaviour, reason:e.reason, input:e.input, consecutive:e.consecutive, response:e.response})),
    chat_messages:{machine:ev.filter(e=>e.type==="chat_message"&&e.who==="m").length, participant:ev.filter(e=>e.type==="chat_message"&&e.who==="u").length},
@@ -1323,7 +1340,7 @@ function openComposition({source, items, phrase="", title="", why="", correction
   turns: turns || (phrase?[{role:"request", text:phrase}]:[]), reworkN, reworkOff:false, targets, allergyNote, slot:slotInfo(),
   corrections, proposal, edits:0, locked:new Set(), violKeys:new Set(), screens:source==="model"?[0,1,2]:[1,2], blocked:null, editSnap:null};
  S.phase="compose"; S.activeFormulation=source==="model"?"proposed":null; S.ui.screen=S.comp.screens[0]; S.ui.focus=0; S.ui.edit=null; S.ui.picker=source==="manual"; S.ui.pickCls=null; S.ui.pickFocus=1;
- log("composition_shown",{comp_id:S.comp.id, source, items:S.comp.items, title, why, local_totals:roundT(totals(S.comp.items)), slot_real:S.comp.slot.real, slot_used:S.comp.slot.used, slot_forced:S.comp.slot.forced, energy_target:tprof().kcal});
+ log("composition_shown",{comp_id:S.comp.id, source, items:S.comp.items, title, why, local_totals:roundT(totals(S.comp.items)), slot_real:S.comp.slot.real, slot_used:S.comp.slot.used, slot_forced:S.comp.slot.forced, slot_source:S.comp.slot.source, energy_target:tprof().kcal});
  trackViolations("composition"); render();
 }
 function trackViolations(source){
@@ -1425,15 +1442,37 @@ function showPod(){
  podEl.style.backgroundPosition=`${c.x/(POD_IMG.w-c.s)*100}% ${c.y/(POD_IMG.h-c.s)*100}%`;
  device.classList.add("podded"); S.phase="done";
  log("pod_shown",{variant:v+1, of:4, name:c.name, crop:{x:c.x,y:c.y,w:c.s,h:c.s}, cycle:S.session.cycle});
- render(); // la sessione resta aperta: dal pannello si continua con lo stesso partecipante o si termina
+ render(); noteLine("endNote"); // la sessione resta aperta: dalla freccia del pannello si continua o si chiude
 }
+/* NUOVA COMPOSIZIONE (dal pannello, dopo la Pod): stesso profilo, la conversazione resta; la macchina torna in ascolto */
+function newComposition(){
+ const key=S.profileKey; if(!S.session||S.session.ended) return; continueCycle();
+ if(key&&S.profiles[key]){ chooseProfile(key,false); log("new_composition",{profile:key, cycle:S.session.cycle}); }
+}
+/* CHIUDI LA SESSIONE: è il momento in cui il log viene esportato; poi riposo e nuova sessione per un nuovo partecipante */
+async function closeSession(){
+ if(!S.session||S.session.ended) return;
+ log("session_close_requested",{});
+ const fn=logFilename();
+ let ok=false;
+ if(S.downloads){ try{ endSession(); await S.downloads.save({filename:fn, data:JSON.stringify(buildLog(),null,2)}); ok=true; }catch(e){ if(e&&e.code==="unavailable") S.downloads=null; S.session.ended=null; log("session_close_failed",{code:e&&e.code}); } }
+ if(!ok){ msgsEl.insertAdjacentHTML("beforeend",`<div class="msg-sep">${esc(T("sesCloseFail"))}</div>`); msgsEl.scrollTop=msgsEl.scrollHeight; S.ui.exportMsg=T("sesCloseFail"); renderPanel(); return; }
+ msgsEl.insertAdjacentHTML("beforeend",`<div class="msg-sep">${esc(T("sesClosed",{f:fn}))}</div>`); msgsEl.scrollTop=msgsEl.scrollHeight;
+ try{ localStorage.removeItem("handpod_v5_log_backup"); }catch(_){}
+ /* riposo: macchina al centro, nessuna Pod; dopo un momento la scheda per il nuovo partecipante */
+ clearTimers(); device.classList.remove("podded"); powderLayers.innerHTML="";
+ Object.assign(S,{phase:"rest", comp:null, load:null, prep:{step:-1}, activeFormulation:null, profileKey:null, fixOffer:null, slotAsk:null, line:null, rework:null, waitSince:null, reqSlot:null});
+ setPanel(false,"session_closed"); render();
+ setTimeout(()=>{ setup.hidden=false; renderSetup(); },2500);
+}
+function logFilename(){ const stamp=new Date(S.session.t0).toISOString().slice(0,16).replace(/[:T]/g,"-"), safe=String(S.session.pid).replace(/[^\w-]+/g,"_").slice(0,40)||"p"; return `handpod_${safe}_${stamp}.json`; }
 /* CONTINUA: stesso partecipante, stessi profili (quelli creati restano fra i cerchi della scelta profilo);
    la macchina torna al riposo per una nuova Pod. Il log resta unico, diviso in cicli. */
 function continueCycle(){
  if(!S.session||S.session.ended) return; commitEdit(); clearTimers();
  S.session.cycle=(S.session.cycle||1)+1; log("cycle_continue",{cycle:S.session.cycle, profiles_kept:Object.keys(S.profiles).filter(k=>k!=="guest")});
  device.classList.remove("podded"); powderLayers.innerHTML=""; scoopEl.getAnimations().forEach(a=>a.cancel()); streamEl.getAnimations().forEach(a=>a.cancel());
- Object.assign(S,{phase:"rest", comp:null, load:null, prep:{step:-1}, activeFormulation:null, profileKey:null, fixOffer:null, slotAsk:null, line:null, rework:null, waitSince:null});
+ Object.assign(S,{phase:"rest", comp:null, load:null, prep:{step:-1}, activeFormulation:null, profileKey:null, fixOffer:null, slotAsk:null, line:null, rework:null, waitSince:null, reqSlot:null});
  render();
 }
 /* Colore delle polveri: tinta, saturazione e luminosità di base per classe (palette terrosa, smorzata,
@@ -1490,7 +1529,7 @@ function pourScoop(col){
 
 /* ---------------- 11. FLUSSO E PROFILI ---------------- */
 function chooseProfile(key,created){
- S.profileKey=key; S.line=null;
+ S.profileKey=key; S.line=null; S.reqSlot=null; S.listenSeq=(S.listenSeq||0)+1;
  log("profile_selected",{key, created:!!created, name:pName(prof()), kcal:prof().kcal, split:[prof().p,prof().c,prof().f], constraints_active:profileForLog(prof()).constraints_active});
  S.phase="listen"; render();
 }
@@ -1649,7 +1688,11 @@ function profileIssues(p){ const out=[], t=Object.values(p.tastes||{}).filter(Bo
  const re=allergyRegex(p); if(re&&re.test(t)) out.push("tastes mention something excluded by allergies, intolerances or conditions");
  const rf=(p.refusedIds||[]).map(nm).find(x=>t.toLowerCase().includes(x.split(/\s+/)[0].toLowerCase())); if(rf) out.push(`tastes mention ${rf}, which they never want`);
  return out; }
-function localSummary(p){ const L=S.lang==="it", tl=k=>p.tastes[k]?String(p.tastes[k]).split(/[,;]/)[0].trim():null;
+/* il riassunto comincia sempre con "Quindi, riassumendo," (modello o composizione locale) */
+function withLead(t){ t=String(t||"").trim(); const lead=T("sumOpen"); if(!t) return t; if(t.toLowerCase().startsWith(lead.toLowerCase().replace(/,$/,""))) return t;
+ return lead+" "+t.charAt(0).toLowerCase()+t.slice(1); }
+function localSummary(p){ return withLead(localSummary0(p)); }
+function localSummary0(p){ const L=S.lang==="it", tl=k=>p.tastes[k]?String(p.tastes[k]).split(/[,;]/)[0].trim():null;
  const meals=["colazione","pranzo","cena","merenda"].filter(k=>tl(k)).map(k=>(L?T("slotsAt."+k):T("slotsAt."+k))+" "+tl(k));
  const h=p.health||{}, lim=[...HEALTH_KINDS.flatMap(k=>(h[k]||[]).map(x=>hLabel(k,x)))]; const diet=p.diet&&p.diet.tags&&p.diet.tags.length?p.diet.tags.join(", "):null;
  let a=meals.length?(L?"Ti piace mangiare ":"You like to eat ")+meals.join(", ")+".":(L?"Ti piace: ":"You like: ")+(p.likes||"").slice(0,80)+".";
@@ -1662,14 +1705,14 @@ function summaryPrompt(p,issues){ const L=LANGNAME[S.lang], h=p.health||{};
  return `HandPod, a home food device, has just built a person's profile from their answers. Data (null = not asked): ${JSON.stringify(data)}
 Local checks found these possible problems: ${issues.length?issues.join(" | "):"none"}.
 Write in ${L}:
-- "summary": what you understood about how this person eats and what to avoid, as natural speech in second person, at most 2 short lines (35 words). Do not list the fields one by one, do not repeat their answers word for word, no praise, no health advice.
+- "summary": it MUST start with «${T("sumOpen")}», then what you understood about how this person eats and what to avoid, as natural speech in second person, at most 2 short lines (35 words). Do not list the fields one by one, do not repeat their answers word for word, no praise, no health advice.
 - "clarify": if something is ambiguous, contradictory or incomplete in a way that matters for preparing their food (for example a meal described so vaguely it cannot be used, a taste that contradicts their diet or an allergy, an implausible value), ONE short question (max 15 words, ending with "?") about that single point; otherwise null.
 - "field": the field the question is about: likes|colazione|pranzo|merenda|cena|health|diet|refused|age|weight, or null.
 Reply with only {"summary":"...","clarify":null,"field":null}`; }
 function patchPrompt(p,question,answer){ const L=LANGNAME[S.lang], h=p.health||{};
  return `HandPod is updating a person's food profile. Current data: ${JSON.stringify({likes:p.likes, tastes_by_meal:p.tastes, age:p.age, weight_kg:p.weight, health_answer:p.allergyText||null, diet_text:p.diet&&p.diet.text, never_wants_text:p.refused&&p.refused.text})}
 The device asked: «${question}». The person answered: «${answer}».
-Return the fields to change (null = unchanged). health_text, diet_text and never_wants_text must be the full updated text, written so that names of allergies, intolerances, conditions, diets and ingredients stay explicit. Then a new "summary" in ${L} of the updated profile: natural second person speech, at most 2 short lines, no field-by-field list.
+Return the fields to change (null = unchanged). health_text, diet_text and never_wants_text must be the full updated text, written so that names of allergies, intolerances, conditions, diets and ingredients stay explicit. Then a new "summary" in ${L} of the updated profile, starting with «${T("sumOpen")}»: natural second person speech, at most 2 short lines, no field-by-field list.
 Reply with only {"patch":{"likes":null,"tastes_by_meal":{"colazione":null,"pranzo":null,"merenda":null,"cena":null,"spuntino":null},"age":null,"weight_kg":null,"health_text":null,"diet_text":null,"never_wants_text":null},"summary":"..."}`; }
 function applyPatch(pt){ const d=S.draft, ch=[]; if(!pt||typeof pt!=="object") return ch;
  if(typeof pt.likes==="string"&&pt.likes.trim()){ d.likes=pt.likes.trim().slice(0,200); ch.push("likes"); }
@@ -1702,7 +1745,7 @@ async function startSummary(){
  let r=null, failed=false;
  try{ r=await S.sample.json(summaryPrompt(p,issues),{modelTier:MODEL_TIER_UI, signal:ctl.signal, cache:false}); }catch(e){ failed=!(e&&e.code==="cancelled"); if(failed) errLine(e); }
  S.pending=null; S.ctl=null; if(S.phase!=="create_summary"){ render(); return; }
- const sm=r&&typeof r.summary==="string"?r.summary.trim().slice(0,320):"";
+ const sm=r&&typeof r.summary==="string"?withLead(r.summary.trim().slice(0,320)):"";
  if(!sm){ edgeCase("create_summary","failure",failed?"call_failed":"malformed","",{fn:"profile_summary", handled:"local_summary"}); finish(localSummary(p),"local_fallback",null,null); return; }
  const cq=r.clarify?cleanQ(r.clarify,""):null;
  finish(sm,"model",cq,cq&&r.field?String(r.field):null);
@@ -1716,7 +1759,7 @@ async function profilePatch(question,answer,field,kind){
   let r=null, failed=false;
   try{ r=await S.sample.json(patchPrompt(draftProfile("draft"),question,answer),{modelTier:MODEL_TIER_UI, signal:ctl.signal, cache:false}); }catch(e){ failed=!(e&&e.code==="cancelled"); if(failed) errLine(e); }
   S.pending=null; S.ctl=null;
-  if(r&&r.patch){ ch=applyPatch(r.patch); sm=typeof r.summary==="string"?r.summary.trim().slice(0,320):""; src="model"; }
+  if(r&&r.patch){ ch=applyPatch(r.patch); sm=typeof r.summary==="string"?withLead(r.summary.trim().slice(0,320)):""; src="model"; }
   else edgeCase(S.phase,"failure",failed?"call_failed":"malformed",answer,{fn:"profile_patch", handled:"local_rules"});
  }
  if(!ch.length) ch=localPatch(answer,field);
@@ -1868,9 +1911,12 @@ function stateMsg(){
   case "create_confirm": return {sig:P+"|"+S.draft.id+"|"+S.draft.sumVer, once:true, pre:[S.draft.summary], text:T("confirmQ")};
   case "create_correct": return {sig:P+"|"+S.draft.id, once:true, text:T("askCorrect")};
   case "create_done": return {sig:P+"|"+S.newKey, pre:(S.draft&&S.draft.finalSummary)?[S.draft.finalSummary]:[], text:T("allReady")};
-  case "listen": { const t=S.line||(remoteReady()?(prof().name?T("listeningNamed",{n:prof().name}):T("listening")):T("pickOffline")); return {sig:"listen|"+t, text:t, click:!S.line&&!remoteReady()}; }
+  case "listen": { if(S.line) return {sig:"listen|"+S.line, text:S.line}; if(!remoteReady()) return {sig:"listen|off|"+S.lang, text:T("pickOffline"), click:true};
+   /* il saluto si calcola una volta per ingresso nell'ascolto: l'ora non cambia a ogni ridisegno */
+   const gk=S.profileKey+"|"+S.slotForced+"|"+S.lang+"|"+(S.listenSeq||0); if(!S.greet||S.greet.key!==gk){ S.greet={key:gk, ...greeting()}; }
+   return {sig:"listen|"+gk, text:S.greet.text, extra:S.greet.extra}; }
   case "rework": { const t=S.line||T("reworkAsk"); return {sig:"rework|"+t, text:t}; }
-  case "compose": { const c=S.comp; return (c&&S.activeFormulation==="proposed")?{sig:"compose|"+c.id, once:true, text:composeMsg(c), logText:(c.allergyNote&&!LOG_FULL_PROFILE)?composeMsg({...c,allergyNote:null})+" [nota sul profilo non registrata]":null}:null; }
+  case "compose": { const c=S.comp; return (c&&S.activeFormulation==="proposed")?{sig:"compose|"+c.id, once:true, note:"swipeNote", text:composeMsg(c), logText:(c.allergyNote&&!LOG_FULL_PROFILE)?composeMsg({...c,allergyNote:null})+" [nota sul profilo non registrata]":null}:null; }
   case "close_wait": return {sig:"close_wait|"+(S.load&&S.load.id), once:true, text:T("closeMe"), click:true};
   case "prep": case "done": return {sig:"prep|"+(S.load&&S.load.id)+"|"+S.prep.step, once:true, text:[T("mixing"),T("pressing"),T("ready")][S.prep.step]||T("ready"), click:S.prep.step===2};
  }
@@ -1881,9 +1927,13 @@ function say(text,extra){ if(text) S.outbox.push({text,extra}); queueMicrotask((
 function flushChat(){
  if(!S.session) return;
  const m=stateMsg(), sg=m?m.sig:"none|"+S.phase;
- if(sg!==lastSig){ lastSig=sg; if(m&&!(m.once&&onceSigs.has(sg))){ if(m.once) onceSigs.add(sg); (m.pre||[]).forEach(x=>post("m",x,{state:S.phase})); post("m",m.text,{state:S.phase, ...(m.logText!=null?{logText:m.logText}:{}), ...(m.click?{click:true}:{})}); } }
+ if(sg!==lastSig){ lastSig=sg; if(m&&!(m.once&&onceSigs.has(sg))){ if(m.once) onceSigs.add(sg); (m.pre||[]).forEach(x=>post("m",x,{state:S.phase})); post("m",m.text,{state:S.phase, ...(m.logText!=null?{logText:m.logText}:{}), ...(m.click?{click:true}:{}), ...(m.note?{note:m.note}:{}), ...(m.extra||{})}); } }
  S.outbox.splice(0).forEach(x=>post("m",x.text,x.extra));
 }
+/* annotazione del prototipo da sola (senza frase della macchina): arancione, non va nel log come messaggio */
+function noteLine(key){ const d=document.createElement("div"); d.className="msg m"; d.innerHTML=`<span class="clk">${esc(T(key))}</span>`;
+ const e=msgsEl.querySelector(".empty"); if(e) e.remove(); msgsEl.appendChild(d); void d.offsetWidth; d.classList.add("in"); msgsEl.scrollTop=msgsEl.scrollHeight;
+ S.chat.push({who:"note",text:""}); log("annotation_shown",{annotation:key}); }
 function drawMsg(who,text,click,prev){
  const d=document.createElement("div"); d.className="msg "+who;
  d.innerHTML=`${prev&&prev.who===who?"":`<span class="who">${esc(who==="m"?T("who.m"):(T("who.u")))}</span>`}<span class="tx">${esc(text)}</span>${click?`<span class="clk">${esc(T("clickNote"))}</span>`:""}`;
@@ -1894,12 +1944,14 @@ function post(who,text,extra){
  S.chat.push({who,text,t:Date.now()});
  const d=document.createElement("div"); d.className="msg "+who;
  /* "(click per procedere)": annotazione del prototipo, non parola della macchina; sempre la stessa formula, mai nel log come messaggio */
- d.innerHTML=`${prev&&prev.who===who?"":`<span class="who">${esc(who==="m"?T("who.m"):(T("who.u")))}</span>`}<span class="tx">${esc(text)}</span>${extra&&extra.click?`<span class="clk">${esc(T("clickNote"))}</span>`:""}`;
+ const notes=[extra&&extra.click?T("clickNote"):null, extra&&extra.note?T(extra.note):null].filter(Boolean);
+ d.innerHTML=`${prev&&prev.who===who?"":`<span class="who">${esc(who==="m"?T("who.m"):(T("who.u")))}</span>`}<span class="tx">${esc(text)}</span>${notes.map(n=>`<span class="clk">${esc(n)}</span>`).join("")}`;
  const e=msgsEl.querySelector(".empty"); if(e) e.remove();
  msgsEl.appendChild(d); void d.offsetWidth; d.classList.add("in"); msgsEl.scrollTop=msgsEl.scrollHeight;
  const ex={...(extra||{})}; let lt=text;
  if(ex.logText!=null){ lt=ex.logText; delete ex.logText; }
  if(ex.click){ delete ex.click; ex.awaits_click=true; }
+ if(ex.note){ ex.annotation=ex.note; delete ex.note; }
  if(who==="u"&&SENS_PHASES.includes(ex.purpose)&&!LOG_FULL_PROFILE) lt="[dato sensibile: campo compilato, contenuto non registrato]";
  log("chat_message",{who, text:lt, face_shown:curFace, ...ex});
 }
@@ -2032,7 +2084,8 @@ voiceForm.addEventListener("submit",e=>{ e.preventDefault(); const v=voiceIn.val
  if(["idle","off","close","click"].includes(m)) return;
  voiceIn.value=""; if(shown) post("u",shown,{purpose:m});
  if(m==="listen"||m==="rework"){ const c=validate(m,v); if(!c.ok){ notUnderstood(m,c.reason,v); return; }
-  if(m==="listen"){ if(needSlotTaste()){ askSlotTaste(c.value); return; } sendPhrase(c.value); } else sendRework(c.value); return; }
+  if(m==="listen"){ const rs=slotFromRequest(c.value); S.reqSlot=rs; if(rs&&rs!==(S.slotForced||realSlot())) log("slot_from_request",{slot:rs, slot_real:realSlot(), slot_forced:S.slotForced||null});
+   if(needSlotTaste()){ askSlotTaste(c.value); return; } sendPhrase(c.value); } else sendRework(c.value); return; }
  if(m==="slot_taste"){ const c=validate(m,v); if(!c.ok){ notUnderstood(m,c.reason,v); return; } understood(); answerSlotTaste(c.value); return; }
  if(m==="fix"){ const c=validate("fix",v); if(!c.ok){ notUnderstood("fix",c.reason,v); return; } understood();
   const vv=curViol(), x=vv.find(z=>z.key===S.fixOffer)||vv[0];
@@ -2052,7 +2105,7 @@ const appEl=document.getElementById("app"), ptog=document.getElementById("ptog")
 function setPanel(open,via){ S.ui.panelOpen=!!open; appEl.classList.toggle("pOpen",S.ui.panelOpen); ptog.setAttribute("aria-expanded",String(S.ui.panelOpen)); ptog.setAttribute("aria-label",T("pTog"));
  document.getElementById("panelWrap").setAttribute("aria-hidden",String(!S.ui.panelOpen)); ptog.title=T("pTog");
  log("panel_toggle",{open:S.ui.panelOpen, via:via||"arrow"}); }
-ptog.addEventListener("click",()=>setPanel(!S.ui.panelOpen,"arrow"));
+ptog.addEventListener("click",()=>{ setPanel(!S.ui.panelOpen,"arrow"); if(S.ui.panelOpen&&S.phase==="done") setTimeout(()=>{ const eb=panel.querySelector(".endbox"); if(eb) eb.scrollIntoView({behavior:"smooth",block:"end"}); },460); });
 appEl.addEventListener("transitionend",e=>{ if(e.target===appEl&&rig.classList.contains("open")) layoutRig(); });
 /* SCHEDA UTENTE: "non compilato" se la domanda non è stata posta, "nessuna" se la risposta è vuota */
 function cardHTML(p){ const un=`<span class="unf">${T("unfilled")}</span>`, h=p.health||{};
@@ -2085,7 +2138,6 @@ function renderPanel(){
   <dt>${T("pStart")}</dt><dd>${s?new Date(s.t0).toLocaleTimeString():"—"}</dd><dt>${T("pEvents")}</dt><dd id="evCount">${s?s.events.length:0}</dd><dt>${T("pPhase")}</dt><dd id="phaseLine"></dd></dl>
   <div class="btnrow"><button class="pillbtn" id="btnExport" type="button" ${!s||!S.downloads?"disabled":""}>${T("pExport")}</button><button class="pillbtn sec" id="btnCopy" type="button" ${!s?"disabled":""}>${T("pCopy")}</button><button class="pillbtn sec" id="btnImport" type="button" title="${esc(T("pImportHint"))}">${T("pImport")}</button></div>
   <div class="small" id="exportMsg">${esc(S.ui.exportMsg||(S.downloads===null?T("pExportNA"):(S.downloads===undefined?T("pExportWait"):"")))}</div>
-  ${s&&!s.ended&&S.phase==="done"?`<div class="btnrow"><button class="pillbtn" id="btnContinue" type="button">${T("pContinue")}</button></div><div class="small">${T("pContinueHint")}</div>`:""}
   <div class="btnrow">${s&&!s.ended?`<button class="pillbtn sec" id="btnRest" type="button">${T("pRest")}</button><button class="pillbtn sec" id="btnCancel" type="button" ${S.pending?"":"disabled"}>${T("pCancel")}</button><button class="pillbtn sec" id="btnEnd" type="button">${T("pEnd")}</button>`:""}${s&&s.ended?`<span class="small">${T("pEnded")}</span><button class="pillbtn sec" id="btnNew" type="button">${T("pNew")}</button>`:""}</div></section>
  <section><h3>${T("pNet")}</h3><div class="switch"><button id="netSw" type="button" aria-pressed="${S.online}" aria-label="${T("pNet")}"></button><span>${S.online?T("netOn"):T("netOff")}</span></div>
   <label class="field">${T("pSlot")}<select id="slotSel"><option value="">${esc(T("slotAuto",{s:T("slots."+realSlot())}))}</option>${SLOTS.map(k=>`<option value="${k}" ${S.slotForced===k?"selected":""}>${esc(T("slots."+k))}</option>`).join("")}</select></label>
@@ -2096,7 +2148,9 @@ function renderPanel(){
  <section><h3>${T("pArch")}</h3><table class="arch"><tbody>${T("archF").map((f,i)=>`<tr><td>${esc(f)}</td><td style="text-align:right"><span class="tag ${arch[i][0]==="loc"?"loc":(arch[i][1]?"rem":"off")}">${arch[i][0]==="loc"?T("loc"):T("rem")}</span><div class="small">${arch[i][1]?T("active"):T("inactive")}</div></td></tr>`).join("")}</tbody></table>
   <div class="declare">${T("declare")}</div></section>
  <section><h3>${T("pProfiles")}</h3>${profs}</section>
- <section><h3>${T("pLook")}</h3><div class="g2"><label class="field">${T("pTier")}<select id="tierSel"><option value="quick" ${MODEL_TIER_UI==="quick"?"selected":""}>${T("tierQuick")}</option><option value="default" ${MODEL_TIER_UI==="default"?"selected":""}>${T("tierDefault")}</option></select></label><label class="field">${T("pLang")}<select id="langSel"><option value="it" ${S.lang==="it"?"selected":""}>Italiano</option><option value="en" ${S.lang==="en"?"selected":""}>English</option></select></label></div></section>`;
+ <section><h3>${T("pLook")}</h3><div class="g2"><label class="field">${T("pTier")}<select id="tierSel"><option value="quick" ${MODEL_TIER_UI==="quick"?"selected":""}>${T("tierQuick")}</option><option value="default" ${MODEL_TIER_UI==="default"?"selected":""}>${T("tierDefault")}</option></select></label><label class="field">${T("pLang")}<select id="langSel"><option value="it" ${S.lang==="it"?"selected":""}>Italiano</option><option value="en" ${S.lang==="en"?"selected":""}>English</option></select></label></div></section>
+ ${s&&!s.ended&&S.phase==="done"?`<section class="endbox"><h3>${T("pEndBox")}</h3><div class="btnrow"><button class="pillbtn" id="btnNewComp" type="button">${T("pNewComp")}</button></div><div class="small">${T("pNewCompHint")}</div>
+  <div class="btnrow"><button class="pillbtn sec" id="btnCloseSes" type="button">${T("pCloseSes")}</button></div><div class="small">${T("pCloseHint")}</div></section>`:""}`;
  document.getElementById("stageMeta").textContent=s?s.pid+(s.cycle>1?` · Pod ${s.cycle}`:""):"";
  updatePanelLive();
 }
@@ -2115,6 +2169,8 @@ panel.addEventListener("click",async e=>{
  if(b.id==="btnCancel"){ if(S.ctl) S.ctl.abort(); return; }
  if(b.id==="btnRest"){ commitEdit(); clearTimers(); S.activeFormulation=null; log("researcher_reset",{}); S.phase="rest"; S.comp=null; S.line=null; S.profileKey=null; S.fixOffer=null; S.load=null; S.prep.step=-1; render(); return; }
  if(b.id==="btnContinue"){ continueCycle(); return; }
+ if(b.id==="btnNewComp"){ newComposition(); return; }
+ if(b.id==="btnCloseSes"){ closeSession(); return; }
  if(b.id==="btnImport"){ pickImportFile(msg=>{ if(msg){ S.ui.exportMsg=msg; renderPanel(); } }); return; }
  if(b.id==="apiSave"){ const c=apiCfg(), pv=c.provider, k=document.getElementById("apiKeyIn").value.trim(), q=document.getElementById("apiQuickIn").value.trim(), d=document.getElementById("apiDefIn").value.trim();
   if(k) c.keys[pv]=k; c.models[pv]={quick:q||PROVIDERS[pv].quick, def:d||PROVIDERS[pv].def}; apiStore(c); setupStandaloneModel(); S.apiMsg=""; log("api_config",{provider:pv, model_quick:c.models[pv].quick, model_default:c.models[pv].def, key_set:!!c.keys[pv]}); render(); return; }
