@@ -270,7 +270,7 @@ details summary{cursor:pointer;font-size:13.5px}
 
 <script>
 /* =====================================================================
-   HandPod, prototipo navigabile, versione 11.
+   HandPod, prototipo navigabile, versione 12.
    Divisione del lavoro come nella Tabella 6.2 della tesi:
    LOCALE (in questa pagina, nessuna rete): calcolo nutrizionale e ribilanciamento,
    vincoli di sicurezza, profili e loro creazione (incluso il riconoscimento delle
@@ -331,7 +331,7 @@ const STRINGS = {
   vHint:{click:"Clicca in un punto qualsiasi dello schermo per proseguire.", sens:"Dato fittizio: usato nella sessione e incluso nel log esportato (modalità test).", on:"La frase va al modello remoto; la proposta viene poi verificata in questa pagina.", create:"La risposta resta in questa pagina.", off:"Senza rete la comprensione delle frasi non è disponibile: si compone toccando lo schermo.", wait:"Collegamento al modello in corso…", na:"Modello non disponibile in questa vista: si compone toccando lo schermo.", idle:"Il campo si attiva quando il device aspetta una risposta.", rework:"La nuova indicazione rivede la proposta attuale, non ne chiede una da zero. Tocca lo schermo per annullare.", reworkOff:"Senza rete la richiesta non può essere riformulata a parole; la composizione resta modificabile ingrediente per ingrediente sullo schermo.", fix:"Rispondi «sì» e la correzione la fa il calcolo locale (funziona anche senza rete); altrimenti modifica tu gli ingredienti.", close:"Clicca in un punto qualsiasi dello schermo per richiudere il coperchio.", likesOn:"La risposta entra nel profilo; la domanda che segue la formula il modello remoto.", slot:"La risposta completa il profilo per questa fascia; poi la richiesta prosegue."},
   pSession:"Sessione", pPid:"Partecipante", pScenario:"Scenario", pStart:"Inizio", pEvents:"Eventi", pPhase:"Fase",
   pImport:"Importa sessione", pImportHint:"Carica un log JSON esportato: riprende lo stesso partecipante, i profili e la conversazione, e riparte dal riposo per una nuova Pod. Se c'è una sessione aperta, esportala prima.", pImportOk:"Sessione ripresa: {p}", pImportErr:"File non valido: serve un log JSON esportato da questo prototipo.", pImportPartial:"Alcuni profili erano nel log senza la scheda completa: sono stati ripresi solo nome e valori di base.", setupImport:"Riprendi una sessione da file JSON", resumed:"Sessione ripresa da file",
-  pApi:"Modello (versione sito)", apiKey:"Chiave API Anthropic", apiQuick:"Modello rapido", apiDef:"Modello bilanciato", apiSave:"Salva", apiForget:"Dimentica la chiave", apiSaved:"Chiave salvata in questo browser (…{k}).", apiNone:"Nessuna chiave: la traduzione delle frasi è spenta, si compone toccando lo schermo.", apiNote:"La chiave resta solo in questo browser: non entra nel log né nei file del sito. Usala solo su un computer tuo.", apiBad:"La chiave non è stata accettata: controllala.",
+  pApi:"Modello (versione sito)", apiProv:"Servizio", apiKey:"Chiave API", apiTest:"Prova", apiTesting:"Prova in corso…", apiOk:"Collegamento riuscito: il modello risponde.", apiOdd:"Il modello risponde, ma non nel formato atteso: prova un altro modello.", apiNet:"Il servizio non risponde da questa pagina (rete o blocco del browser).", apiLimit:"Limite gratuito raggiunto: riprova più tardi o domani.", apiModel:"Modello non trovato: controlla il nome del modello.", apiCredit:"Credito esaurito sul servizio.", apiHttp:"Il servizio ha risposto con un errore ({n}).", apiQuick:"Modello rapido", apiDef:"Modello bilanciato", apiSave:"Salva", apiForget:"Dimentica la chiave", apiSaved:"Chiave salvata in questo browser (…{k}).", apiNone:"Nessuna chiave: la traduzione delle frasi è spenta, si compone toccando lo schermo.", apiNote:"La chiave resta solo in questo browser: non entra nel log né nei file del sito. Usala solo su un computer tuo.", apiBad:"La chiave non è stata accettata: controllala.",
   pContinue:"Continua con lo stesso partecipante", pContinueHint:"I profili restano salvati e la macchina torna al riposo per una nuova Pod. Il log resta uno solo.", pExport:"Esporta log (JSON)", pCopy:"Copia JSON", pCopied:"Copiato", pEnd:"Termina sessione", pEnded:"Sessione terminata", pNew:"Nuova sessione", pRest:"Torna al riposo", pCancel:"Annulla richiesta",
   pExportNA:"Esportazione non disponibile in questa vista", pExportWait:"Esportazione in preparazione…", pSaved:"Log salvato", pDeclined:"Salvataggio annullato", pExportErr:"Salvataggio non riuscito",
   pNet:"Rete", netOn:"Connessa", netOff:"Scollegata", keep:"Continua", lose:"Si perde",
@@ -380,7 +380,7 @@ const STRINGS = {
   vHint:{click:"Click anywhere on the screen to go on.", sens:"Fictitious data: used in the session and included in the exported log (test mode).", on:"The sentence goes to the remote model; the proposal is then checked in this page.", create:"The answer stays in this page.", off:"Offline, sentence understanding is not available: compose by tapping the screen.", wait:"Connecting to the model…", na:"Model not available in this view: compose by tapping the screen.", idle:"The field turns on when the device is waiting for an answer.", rework:"The new instruction revises the current proposal; it does not ask for a fresh one. Tap the screen to cancel.", reworkOff:"Offline the request cannot be rephrased in words; the composition stays editable ingredient by ingredient on the screen.", fix:"Answer «yes» and the local calculation applies the fix (works offline too); otherwise edit the ingredients yourself.", close:"Click anywhere on the screen to close the lid.", likesOn:"The answer goes into the profile; the follow-up question is written by the remote model.", slot:"The answer completes the profile for this moment; then the request goes on."},
   pSession:"Session", pPid:"Participant", pScenario:"Scenario", pStart:"Started", pEvents:"Events", pPhase:"Phase",
   pImport:"Import session", pImportHint:"Load an exported JSON log: it resumes the same participant, the profiles and the conversation, and starts again from rest for a new Pod. If a session is open, export it first.", pImportOk:"Session resumed: {p}", pImportErr:"Invalid file: a JSON log exported by this prototype is needed.", pImportPartial:"Some profiles were logged without the full card: only name and base values were restored.", setupImport:"Resume a session from a JSON file", resumed:"Session resumed from file",
-  pApi:"Model (website version)", apiKey:"Anthropic API key", apiQuick:"Quick model", apiDef:"Balanced model", apiSave:"Save", apiForget:"Forget the key", apiSaved:"Key saved in this browser (…{k}).", apiNone:"No key: sentence translation is off, compose by tapping the screen.", apiNote:"The key stays only in this browser: it never enters the log or the site files. Use it only on your own computer.", apiBad:"The key was not accepted: check it.",
+  pApi:"Model (website version)", apiProv:"Service", apiKey:"API key", apiTest:"Test", apiTesting:"Testing…", apiOk:"Connected: the model answers.", apiOdd:"The model answers, but not in the expected format: try another model.", apiNet:"The service does not answer from this page (network or browser block).", apiLimit:"Free limit reached: try again later or tomorrow.", apiModel:"Model not found: check the model name.", apiCredit:"No credit left on the service.", apiHttp:"The service answered with an error ({n}).", apiQuick:"Quick model", apiDef:"Balanced model", apiSave:"Save", apiForget:"Forget the key", apiSaved:"Key saved in this browser (…{k}).", apiNone:"No key: sentence translation is off, compose by tapping the screen.", apiNote:"The key stays only in this browser: it never enters the log or the site files. Use it only on your own computer.", apiBad:"The key was not accepted: check it.",
   pContinue:"Continue with the same participant", pContinueHint:"Profiles stay saved and the machine goes back to rest for a new Pod. The log stays a single file.", pExport:"Export log (JSON)", pCopy:"Copy JSON", pCopied:"Copied", pEnd:"End session", pEnded:"Session ended", pNew:"New session", pRest:"Back to rest", pCancel:"Cancel request",
   pExportNA:"Export not available in this view", pExportWait:"Preparing export…", pSaved:"Log saved", pDeclined:"Save cancelled", pExportErr:"Save failed",
   pNet:"Network", netOn:"Connected", netOff:"Disconnected", keep:"Keeps working", lose:"Lost",
@@ -893,7 +893,7 @@ function buildLog(){
   schema:"handpod-session-log/8", participant_id:s.pid, scenario:s.scenario, language:S.lang,
   started_at:new Date(s.t0).toISOString(), ended_at:s.ended?new Date(s.ended).toISOString():null, duration_ms:end-s.t0,
   targets_note:"Energy and macro split of each Pod come from the request (model) and are bounded locally around the profile; see targets_model/targets_used.", architecture:{nutritional_calculation:"local (page)", safety_constraints:"local (page)", profiles_and_creation:"local (page)", typed_allergy_reading:"local rules (page)", expressive_layer:"local (page)",
-   runtime:IN_CLAUDE?"claude.ai artifact (sample capability)":"standalone website (Anthropic API with the researcher's key)",
+   runtime:IN_CLAUDE?"claude.ai artifact (sample capability)":"standalone website ("+apiCfg().provider+", model "+modelFor(apiCfg(),"quick")+", researcher's key)",
    intent_translation:"remote model via sample (prototype tool; the thesis places it on the device)", why_recompute:"remote model via sample", model_tier:MODEL_TIER},
   declared_timed_simulations:["bowl loading after Confirm: each ingredient waits for the participant's click; the scoop pour lasts "+POUR_MS+" ms (layers without scoop under prefers-reduced-motion)","preparation sequence faces 5-6-7 after the participant closes the lid"], face_animation_note:"Each face loops its own animation while visible; which face is shown depends only on state (see faceFor). Face 4 is governed by S.activeFormulation: \"proposed\" (proposal found, screen 6.1) or \"loading\" (powders entering the bowl).",
   input_channel:"conversation card under the device simulating the spoken dialogue: every machine phrase is a chat message posted in the same render as the face change (chat_message.face_shown); the participant types their spoken replies",
@@ -1939,11 +1939,11 @@ function renderPanel(){
   <label class="field">${T("pSlot")}<select id="slotSel"><option value="">${esc(T("slotAuto",{s:T("slots."+realSlot())}))}</option>${SLOTS.map(k=>`<option value="${k}" ${S.slotForced===k?"selected":""}>${esc(T("slots."+k))}</option>`).join("")}</select></label>
   <div class="small">${T("slotNote")}</div>
   <div class="lost"><div><b>${T("keep")}</b>${T("keepList")}</div><div class="x"><b>${T("lose")}</b>${T("loseList")}</div></div></section>
+ ${apiPanelHTML()}
  <section><h3>${T("pExpr")}</h3><div class="exprline" id="exprLine"></div><div class="small">${T("pSim")}</div></section>
  <section><h3>${T("pArch")}</h3><table class="arch"><tbody>${T("archF").map((f,i)=>`<tr><td>${esc(f)}</td><td style="text-align:right"><span class="tag ${arch[i][0]==="loc"?"loc":(arch[i][1]?"rem":"off")}">${arch[i][0]==="loc"?T("loc"):T("rem")}</span><div class="small">${arch[i][1]?T("active"):T("inactive")}</div></td></tr>`).join("")}</tbody></table>
   <div class="declare">${T("declare")}</div></section>
  <section><h3>${T("pProfiles")}</h3>${profs}</section>
- ${apiPanelHTML()}
  <section><h3>${T("pLook")}</h3><div class="g2"><label class="field">${T("pTier")}<select id="tierSel"><option value="quick" ${MODEL_TIER_UI==="quick"?"selected":""}>${T("tierQuick")}</option><option value="default" ${MODEL_TIER_UI==="default"?"selected":""}>${T("tierDefault")}</option></select></label><label class="field">${T("pLang")}<select id="langSel"><option value="it" ${S.lang==="it"?"selected":""}>Italiano</option><option value="en" ${S.lang==="en"?"selected":""}>English</option></select></label></div></section>`;
  document.getElementById("stageMeta").textContent=s?s.pid+(s.cycle>1?` · Pod ${s.cycle}`:""):"";
  updatePanelLive();
@@ -1964,14 +1964,16 @@ panel.addEventListener("click",async e=>{
  if(b.id==="btnRest"){ commitEdit(); clearTimers(); S.activeFormulation=null; log("researcher_reset",{}); S.phase="rest"; S.comp=null; S.line=null; S.profileKey=null; S.fixOffer=null; S.load=null; S.prep.step=-1; render(); return; }
  if(b.id==="btnContinue"){ continueCycle(); return; }
  if(b.id==="btnImport"){ pickImportFile(msg=>{ if(msg){ S.ui.exportMsg=msg; renderPanel(); } }); return; }
- if(b.id==="apiSave"){ const k=document.getElementById("apiKeyIn").value.trim(), q=document.getElementById("apiQuickIn").value.trim(), d=document.getElementById("apiDefIn").value.trim(); const cur=apiCfg();
-  apiStore({key:k||cur.key, quick:q||API_DEFAULTS.quick, def:d||API_DEFAULTS.def}); setupStandaloneModel(); S.apiMsg=""; render(); return; }
- if(b.id==="apiForget"){ apiStore(null); setupStandaloneModel(); S.apiMsg=""; render(); return; }
+ if(b.id==="apiSave"){ const c=apiCfg(), pv=c.provider, k=document.getElementById("apiKeyIn").value.trim(), q=document.getElementById("apiQuickIn").value.trim(), d=document.getElementById("apiDefIn").value.trim();
+  if(k) c.keys[pv]=k; c.models[pv]={quick:q||PROVIDERS[pv].quick, def:d||PROVIDERS[pv].def}; apiStore(c); setupStandaloneModel(); S.apiMsg=""; log("api_config",{provider:pv, model_quick:c.models[pv].quick, model_default:c.models[pv].def, key_set:!!c.keys[pv]}); render(); return; }
+ if(b.id==="apiTest"){ apiTest(); return; }
+ if(b.id==="apiForget"){ const c=apiCfg(); delete c.keys[c.provider]; apiStore(c); setupStandaloneModel(); S.apiMsg=""; render(); return; }
  if(b.id==="btnEnd"){ endSession(); render(); return; }
  if(b.id==="btnNew"){ try{localStorage.removeItem("handpod_v5_log_backup");}catch(_){} location.reload(); return; }
 });
 panel.addEventListener("change",e=>{
  const t=e.target;
+ if(t.id==="apiProvSel"){ const c=apiCfg(); c.provider=t.value; apiStore(c); setupStandaloneModel(); S.apiMsg=""; render(); return; }
  if(t.id==="slotSel"){ S.slotForced=t.value||null; log("slot_forced",{to:S.slotForced, slot_real:realSlot(), slot_used:slotInfo().used}); render(); return; }
  if(t.id==="tierSel"){ MODEL_TIER_UI=t.value; log("model_tier_change",{to:t.value}); return; }
  if(t.id==="langSel"){ S.lang=t.value; log("language_change",{to:S.lang}); curKey=null; if(!S.chat.length) renderChatEmpty(); render(); return; }
@@ -2049,28 +2051,50 @@ function startSession(pid,scenario=null){
    Fuori da Claude (sito, es. GitHub Pages): il salvataggio è un normale download del browser e il modello è l'API
    Anthropic chiamata con una chiave che il ricercatore inserisce nel pannello e che resta solo in quel browser. */
 const IN_CLAUDE=!!(window.claude&&typeof window.claude.use==="function");
-const API_DEFAULTS={quick:"claude-haiku-5-5", def:"claude-sonnet-5-5"};
-function apiCfg(){ try{ return JSON.parse(localStorage.getItem("handpod_api")||"null")||{}; }catch(_){ return {}; } }
+/* servizi supportati fuori da Claude. OpenRouter: modelli con nome che finisce in ":free", gratuiti con limiti
+   giornalieri (verificati a ottobre 2026: 20 richieste al minuto, 50 al giorno senza credito acquistato). */
+const PROVIDERS={
+ openrouter:{label:"OpenRouter (modelli gratuiti)", quick:"minimax/minimax-m3.1-flash:free", def:"minimax/minimax-m3.1-flash:free", keyHint:"sk-or-…", site:"openrouter.ai"},
+ anthropic:{label:"Anthropic (a pagamento)", quick:"claude-haiku-5-5", def:"claude-sonnet-5-5", keyHint:"sk-ant-…", site:"console.anthropic.com"}};
+function apiCfg(){ let c={}; try{ c=JSON.parse(localStorage.getItem("handpod_api")||"null")||{}; }catch(_){}
+ if(c.key&&!c.keys){ c={provider:"anthropic", keys:{anthropic:c.key}, models:{anthropic:{quick:c.quick,def:c.def}}}; } // formato precedente
+ c.provider=c.provider||"openrouter"; c.keys=c.keys||{}; c.models=c.models||{}; return c; }
 function apiStore(v){ try{ if(v) localStorage.setItem("handpod_api",JSON.stringify(v)); else localStorage.removeItem("handpod_api"); }catch(_){} }
+function modelFor(c,tier){ const pv=c.provider, m=c.models[pv]||{}; return tier==="default"?(m.def||PROVIDERS[pv].def):(m.quick||PROVIDERS[pv].quick); }
+async function callProvider(c,prompt,opt){
+ const pv=c.provider, key=c.keys[pv], model=modelFor(c,opt.modelTier); let res;
+ try{
+  if(pv==="openrouter") res=await fetch("https://openrouter.ai/api/v1/chat/completions",{method:"POST", signal:opt.signal,
+    headers:{"content-type":"application/json","authorization":"Bearer "+key,"HTTP-Referer":location.origin,"X-Title":"HandPod prototipo"},
+    body:JSON.stringify({model, max_tokens:2048, messages:[{role:"user",content:prompt}]})});
+  else res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST", signal:opt.signal,
+    headers:{"content-type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+    body:JSON.stringify({model, max_tokens:2048, messages:[{role:"user",content:prompt}]})});
+ }catch(e){ const er=new Error("net"); er.code=(e&&e.name==="AbortError")?"cancelled":"network"; if(er.code==="network") S.apiMsg=T("apiNet"); throw er; }
+ if(!res.ok){ const er=new Error("http "+res.status); er.code=res.status===429?"rate_limited":(res.status===401||res.status===403)?"auth":"http_"+res.status;
+  S.apiMsg=res.status===429?T("apiLimit"):(res.status===401||res.status===403)?T("apiBad"):res.status===404?T("apiModel"):res.status===402?T("apiCredit"):T("apiHttp",{n:res.status}); throw er; }
+ const j=await res.json();
+ const txt=pv==="openrouter"?String((((j.choices||[])[0]||{}).message||{}).content||""):(j.content||[]).filter(x=>x.type==="text").map(x=>x.text).join("");
+ if(j.error){ S.apiMsg=T("apiHttp",{n:j.error.code||"?"}); const er=new Error("api"); er.code="api_error"; throw er; }
+ S.apiMsg=""; return txt;
+}
 function setupStandaloneModel(){
- const c=apiCfg(); if(!c.key){ S.sample=null; return; }
+ const c=apiCfg(); if(!c.keys[c.provider]){ S.sample=null; return; }
  const f=async()=>({});
- f.json=async(prompt,opt={})=>{
-  const model=opt.modelTier==="default"?(c.def||API_DEFAULTS.def):(c.quick||API_DEFAULTS.quick);
-  let res;
-  try{ res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST", signal:opt.signal, headers:{"content-type":"application/json","x-api-key":c.key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
-    body:JSON.stringify({model, max_tokens:2048, messages:[{role:"user",content:prompt}]})}); }
-  catch(e){ const er=new Error("net"); er.code=(e&&e.name==="AbortError")?"cancelled":"network"; throw er; }
-  if(!res.ok){ const er=new Error("http "+res.status); er.code=res.status===429?"rate_limited":(res.status===401||res.status===403)?"auth":"http_"+res.status; if(er.code==="auth"){ S.apiMsg=T("apiBad"); } throw er; }
-  const j=await res.json(), txt=(j.content||[]).filter(x=>x.type==="text").map(x=>x.text).join("");
+ f.json=async(prompt,opt={})=>{ const txt=await callProvider(apiCfg(),prompt,opt);
   const a=txt.indexOf("{"), b=txt.lastIndexOf("}"); if(a<0||b<a) return {}; try{ return JSON.parse(txt.slice(a,b+1)); }catch(_){ return {}; } };
  S.sample=f;
 }
-function apiPanelHTML(){ if(IN_CLAUDE) return ""; const c=apiCfg();
- return `<section><h3>${T("pApi")}</h3><label class="field">${T("apiKey")}<input id="apiKeyIn" type="password" autocomplete="off" placeholder="sk-ant-…"></label>
-  <div class="g2"><label class="field">${T("apiQuick")}<input id="apiQuickIn" type="text" value="${esc(c.quick||API_DEFAULTS.quick)}"></label><label class="field">${T("apiDef")}<input id="apiDefIn" type="text" value="${esc(c.def||API_DEFAULTS.def)}"></label></div>
-  <div class="btnrow"><button class="pillbtn" id="apiSave" type="button">${T("apiSave")}</button>${c.key?`<button class="pillbtn sec" id="apiForget" type="button">${T("apiForget")}</button>`:""}</div>
-  <div class="small">${esc(S.apiMsg||(c.key?T("apiSaved",{k:c.key.slice(-4)}):T("apiNone")))}</div><div class="small">${T("apiNote")}</div></section>`; }
+function apiPanelHTML(){ if(IN_CLAUDE) return ""; const c=apiCfg(), pv=c.provider, P=PROVIDERS[pv], k=c.keys[pv], m=c.models[pv]||{};
+ return `<section><h3>${T("pApi")}</h3>
+  <label class="field">${T("apiProv")}<select id="apiProvSel">${Object.keys(PROVIDERS).map(x=>`<option value="${x}" ${x===pv?"selected":""}>${esc(PROVIDERS[x].label)}</option>`).join("")}</select></label>
+  <label class="field">${T("apiKey")} (${esc(P.site)})<input id="apiKeyIn" type="password" autocomplete="off" placeholder="${esc(P.keyHint)}"></label>
+  <div class="g2"><label class="field">${T("apiQuick")}<input id="apiQuickIn" type="text" value="${esc(m.quick||P.quick)}"></label><label class="field">${T("apiDef")}<input id="apiDefIn" type="text" value="${esc(m.def||P.def)}"></label></div>
+  <div class="btnrow"><button class="pillbtn" id="apiSave" type="button">${T("apiSave")}</button>${k?`<button class="pillbtn sec" id="apiTest" type="button">${T("apiTest")}</button><button class="pillbtn sec" id="apiForget" type="button">${T("apiForget")}</button>`:""}</div>
+  <div class="small" id="apiMsgEl">${esc(S.apiMsg||(k?T("apiSaved",{k:k.slice(-4)}):T("apiNone")))}</div><div class="small">${T("apiNote")}</div></section>`; }
+async function apiTest(){ const el=document.getElementById("apiMsgEl"); if(el) el.textContent=T("apiTesting");
+ try{ const t=await callProvider(apiCfg(),'Reply with only {"ok":true}',{modelTier:"quick"}); S.apiMsg=/ok/.test(t)?T("apiOk"):T("apiOdd"); }catch(e){ if(!S.apiMsg) S.apiMsg=T("apiNet"); }
+ log("api_test",{provider:apiCfg().provider, result:S.apiMsg}); renderPanel(); }
 if(IN_CLAUDE){
  (async()=>{ let s=null; try{ s=await window.claude.use("sample"); }catch(_){ s=null; } S.sample=(typeof s==="function")?s:null; render(); if(S.session) log("capability",{sample:typeof S.sample==="function"}); if(!setup.hidden) renderSetup(); })();
  (async()=>{ let d=null; try{ d=await window.claude.use("downloads"); }catch(_){ d=null; } S.downloads=d||null; renderPanel(); if(!setup.hidden) renderSetup(); })();
