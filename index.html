@@ -2295,14 +2295,19 @@ function startSession(pid,scenario=null){
    Fuori da Claude (sito, es. GitHub Pages): il salvataggio è un normale download del browser e il modello è l'API
    Anthropic chiamata con una chiave che il ricercatore inserisce nel pannello e che resta solo in quel browser. */
 const IN_CLAUDE=!!(window.claude&&typeof window.claude.use==="function");
-/* servizi supportati fuori da Claude. OpenRouter: modelli con nome che finisce in ":free", gratuiti con limiti
+/* servizi supportati fuori da Claude. DeepSeek (predefinito): API compatibile OpenAI, modelli deepseek-flash e
+   deepseek-v4-pro, a consumo (verificato a ottobre 2026: circa 0,15-0,30 $ per milione di token in ingresso per Flash).
+   OpenRouter: modelli con nome che finisce in ":free", gratuiti con limiti
    giornalieri (verificati a ottobre 2026: 20 richieste al minuto, 50 al giorno senza credito acquistato). */
 const PROVIDERS={
+ deepseek:{label:"DeepSeek (a consumo, molto economico)", quick:"deepseek-flash", def:"deepseek-v4-pro", keyHint:"sk-…", site:"platform.deepseek.com"},
  openrouter:{label:"OpenRouter (modelli gratuiti)", quick:"minimax/minimax-m3.1-flash:free", def:"minimax/minimax-m3.1-flash:free", keyHint:"sk-or-…", site:"openrouter.ai"},
  anthropic:{label:"Anthropic (a pagamento)", quick:"claude-haiku-5-5", def:"claude-sonnet-5-5", keyHint:"sk-ant-…", site:"console.anthropic.com"}};
 function apiCfg(){ let c={}; try{ c=JSON.parse(localStorage.getItem("handpod_api")||"null")||{}; }catch(_){}
  if(c.key&&!c.keys){ c={provider:"anthropic", keys:{anthropic:c.key}, models:{anthropic:{quick:c.quick,def:c.def}}}; } // formato precedente
- c.provider=c.provider||"openrouter"; c.keys=c.keys||{}; c.models=c.models||{}; return c; }
+ c.keys=c.keys||{}; c.models=c.models||{};
+ if(c.v!==2){ c.provider="deepseek"; c.v=2; apiStore(c); } // dalla versione con DeepSeek il servizio predefinito è DeepSeek; le chiavi già salvate restano
+ c.provider=PROVIDERS[c.provider]?c.provider:"deepseek"; return c; }
 function apiStore(v){ try{ if(v) localStorage.setItem("handpod_api",JSON.stringify(v)); else localStorage.removeItem("handpod_api"); }catch(_){} }
 function modelFor(c,tier){ const pv=c.provider, m=c.models[pv]||{}; return tier==="default"?(m.def||PROVIDERS[pv].def):(m.quick||PROVIDERS[pv].quick); }
 async function callProvider(c,prompt,opt){
@@ -2311,6 +2316,9 @@ async function callProvider(c,prompt,opt){
   if(pv==="openrouter") res=await fetch("https://openrouter.ai/api/v1/chat/completions",{method:"POST", signal:opt.signal,
     headers:{"content-type":"application/json","authorization":"Bearer "+key,"HTTP-Referer":location.origin,"X-Title":"HandPod prototipo"},
     body:JSON.stringify({model, max_tokens:2048, messages:[{role:"user",content:prompt}]})});
+  else if(pv==="deepseek") res=await fetch("https://api.deepseek.com/chat/completions",{method:"POST", signal:opt.signal,
+    headers:{"content-type":"application/json","authorization":"Bearer "+key},
+    body:JSON.stringify({model, max_tokens:2048, stream:false, messages:[{role:"user",content:prompt}]})});
   else res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST", signal:opt.signal,
     headers:{"content-type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
     body:JSON.stringify({model, max_tokens:2048, messages:[{role:"user",content:prompt}]})});
@@ -2318,7 +2326,7 @@ async function callProvider(c,prompt,opt){
  if(!res.ok){ const er=new Error("http "+res.status); er.code=res.status===429?"rate_limited":(res.status===401||res.status===403)?"auth":"http_"+res.status;
   S.apiMsg=res.status===429?T("apiLimit"):(res.status===401||res.status===403)?T("apiBad"):res.status===404?T("apiModel"):res.status===402?T("apiCredit"):T("apiHttp",{n:res.status}); throw er; }
  const j=await res.json();
- const txt=pv==="openrouter"?String((((j.choices||[])[0]||{}).message||{}).content||""):(j.content||[]).filter(x=>x.type==="text").map(x=>x.text).join("");
+ const txt=(pv==="openrouter"||pv==="deepseek")?String((((j.choices||[])[0]||{}).message||{}).content||""):(j.content||[]).filter(x=>x.type==="text").map(x=>x.text).join("");
  if(j.error){ S.apiMsg=T("apiHttp",{n:j.error.code||"?"}); const er=new Error("api"); er.code="api_error"; throw er; }
  S.apiMsg=""; return txt;
 }
