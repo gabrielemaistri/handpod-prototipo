@@ -7,7 +7,7 @@ Pagina statica: `index.html` più quattro immagini. Nessun dato viene salvato su
 ## Traduzione delle frasi (modello)
 
 Fuori da Claude la pagina usa uno di questi servizi, scelto nel pannello di destra ("Modello (versione sito)"):
-DeepSeek (predefinito, a consumo, molto economico), OpenRouter (modelli gratuiti con limiti giornalieri) o Anthropic.
+Google Gemini (predefinito, piano gratuito con limiti giornalieri), OpenRouter (modelli gratuiti con limiti giornalieri) o Anthropic.
 Il ricercatore incolla la propria chiave API: resta solo nel browser di quel computer (localStorage), non entra
 nel log e non è mai nei file di questo repository. Senza chiave il prototipo funziona come con la rete spenta:
 si compone toccando lo schermo.
