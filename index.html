@@ -34,24 +34,26 @@ button{cursor:pointer}
 
 /* pannello del ricercatore: chiuso all'avvio. La colonna si allarga con una transizione e il palco (macchina e chat)
    si ricentra nello spazio rimasto; il device non cambia dimensione perché la sua misura dipende dalla finestra. */
-#app{--pw:min(380px,34vw);height:100%;display:grid;grid-template-columns:minmax(0,1fr) 34px 0px;gap:0;padding-block:14px;transition:grid-template-columns 450ms var(--ease)}
-#app.pOpen{grid-template-columns:minmax(0,1fr) 34px var(--pw)}
+/* LAYOUT: conversazione a sinistra, macchina grande al centro, pannello del ricercatore a destra (chiuso all'avvio). */
+#app{--pw:min(380px,34vw);--chatW:clamp(260px,24vw,360px);height:100%;box-sizing:border-box;display:grid;grid-template-areas:"chat stage tog panel";grid-template-columns:var(--chatW) minmax(0,1fr) 34px 0px;gap:0;padding-block:14px;transition:grid-template-columns 450ms var(--ease)}
+#app.pOpen{grid-template-columns:var(--chatW) minmax(0,1fr) 34px var(--pw)}
+.chatcol{grid-area:chat;min-width:0;min-height:0;display:flex;padding-right:20px}
+.stage{grid-area:stage} .ptog{grid-area:tog} .panelWrap{grid-area:panel}
 .panelWrap{min-width:0;min-height:0;overflow:hidden;display:flex;justify-content:flex-start}
 .panelWrap .panel{width:var(--pw);flex:none;box-sizing:border-box}
 .ptog{align-self:center;justify-self:center;width:26px;height:46px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--fg-2);display:grid;place-items:center;padding:0;z-index:5}
 .ptog:hover{color:var(--fg)}
 .ptog svg{width:12px;height:12px;transition:transform 450ms var(--ease)}
 #app.pOpen .ptog svg{transform:rotate(180deg)}
-.stage{padding-left:34px}
-@media (max-aspect-ratio: 1/1){ #app{grid-template-columns:minmax(0,1fr) 0 0} #app.pOpen{grid-template-columns:minmax(0,1fr) 0 0}
- .stage{padding-left:0}
+@media (max-aspect-ratio: 1/1){ #app{grid-template-areas:"stage" "chat";grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)} #app.pOpen{grid-template-columns:minmax(0,1fr)}
+ .chatcol{padding-right:0;padding-top:12px}
  .ptog{position:fixed;right:6px;top:50%;transform:translateY(-50%);transition:right 450ms var(--ease)}
  #app.pOpen .ptog{right:calc(min(380px,88vw) + 10px)}
  .panelWrap{position:fixed;top:10px;bottom:10px;right:0;width:0;z-index:4;transition:width 450ms var(--ease)}
  #app.pOpen .panelWrap{width:min(380px,88vw)}
  .panelWrap .panel{width:min(380px,88vw)} }
 @media (prefers-reduced-motion: reduce){ #app,.ptog,.ptog svg,.panelWrap{transition:none} }
-.stage{min-width:0;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;position:relative;padding-top:36px}
+.stage{min-width:0;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;position:relative;padding-top:36px;padding-inline:8px}
 .stage-top{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:12px;color:var(--fg-2);letter-spacing:.06em;text-transform:uppercase}
 .brand{font-family:var(--f-display);font-size:18px;letter-spacing:.02em;text-transform:none;color:var(--fg)}
 .brand em{font-style:italic}
@@ -62,10 +64,13 @@ button{cursor:pointer}
 .device{width:var(--S);height:var(--S);position:relative;flex:none;user-select:none;-webkit-user-select:none;transition:transform 750ms var(--ease)}
 :root{--chatH:calc(clamp(96px,17vh,220px) + 140px)}
 .rig.open .device{transform:translateX(var(--dx)) scale(var(--k))}
-body.closable,.device.closable{cursor:pointer}
+body.closable,.device.closable,body.tapwait{cursor:pointer}
 .bowl{position:absolute;left:50%;top:50%;width:calc(var(--S) * .9);height:calc(var(--S) * .9);transform:translate(-50%,-50%) translateX(calc(-1 * var(--dx))) scale(var(--k));opacity:0;pointer-events:none;transition:opacity 600ms var(--ease)}
-.rig{--S:min(calc(100vh - 36px - 24px - 28px - var(--chatH)),56vw,700px)}
-@media (max-aspect-ratio: 1/1){ .rig{--S:min(46vh,88vw,680px)} }
+.rig{--S:min(calc(100vh - 28px - 36px - 40px),calc(100vw - var(--chatW) - 20px - 34px - 72px),1000px)}
+@media (max-aspect-ratio: 1/1){ .rig{--S:min(58vh,92vw,900px)} }
+/* a pannello aperto la macchina si riduce in proporzione (stessa immagine, stessa registrazione dello schermo) per restare nel palco */
+.rig{transform:scale(var(--kp,1));transition:transform 450ms var(--ease)}
+@media (prefers-reduced-motion: reduce){ .rig{transition:none} }
 .rig.open .bowl{opacity:1}
 .bowl > img:first-child,.bowl svg{position:absolute;inset:0;width:100%;height:100%;display:block}
 /* misurino: largo 62% della ciotola; il perno (labbro sinistro della coppa) cade sopra il centro, a 22% dall'alto */
@@ -191,10 +196,10 @@ body.closable,.device.closable{cursor:pointer}
 .mac span{font-size:3.8cqw;color:var(--scr-dim);letter-spacing:.04em}
 
 /* ---------- conversation card: simulates the spoken dialogue (prototype tool, outside the product) ---------- */
-.voice{width:min(100%,680px);background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;flex:none}
-.msgs{height:clamp(96px,17vh,220px);overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:6px;padding:2px 2px 4px}
+.voice{width:100%;box-sizing:border-box;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;min-height:0}
+.msgs{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:6px;padding:2px 2px 4px}
 .msgs .empty{margin:auto;font-size:12px;color:var(--fg-2)}
-.msg{max-width:78%;display:flex;flex-direction:column;gap:1px;opacity:0;transition:opacity 210ms var(--ease)}
+.msg{max-width:90%;display:flex;flex-direction:column;gap:1px;opacity:0;transition:opacity 210ms var(--ease)}
 .msg.in{opacity:1}
 .msg .who{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-2)}
 .msg .tx{font-size:14px;line-height:1.35;padding:6px 11px;border-radius:14px;overflow-wrap:anywhere}
@@ -255,6 +260,14 @@ details summary{cursor:pointer;font-size:13.5px}
 </style>
 
 <div id="app">
+  <section class="chatcol">
+    <form class="voice" id="voiceForm" autocomplete="off">
+      <label for="voiceIn" id="voiceLabel"></label>
+      <div class="msgs" id="msgs" aria-live="polite"></div>
+      <div class="vrow"><input id="voiceIn" type="text" maxlength="2000"><button class="pillbtn" id="voiceSend" type="submit"></button></div>
+      <div class="hint" id="voiceHint"></div>
+    </form>
+  </section>
   <main class="stage">
     <div class="stage-top"><span class="brand">Hand<em>Pod</em></span><span id="stageMeta"></span></div>
     <div class="rig" id="rig">
@@ -275,12 +288,6 @@ details summary{cursor:pointer;font-size:13.5px}
       <div class="pod" id="pod" aria-hidden="true"></div>
     </div>
     </div>
-    <form class="voice" id="voiceForm" autocomplete="off">
-      <label for="voiceIn" id="voiceLabel"></label>
-      <div class="msgs" id="msgs" aria-live="polite"></div>
-      <div class="vrow"><input id="voiceIn" type="text" maxlength="2000"><button class="pillbtn" id="voiceSend" type="submit"></button></div>
-      <div class="hint" id="voiceHint"></div>
-    </form>
   </main>
   <button class="ptog" id="ptog" type="button" aria-expanded="false" aria-controls="panelWrap"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M7.5 2.5 4 6l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
   <div class="panelWrap" id="panelWrap" aria-hidden="true"><aside class="panel" id="panel"></aside></div>
@@ -289,7 +296,7 @@ details summary{cursor:pointer;font-size:13.5px}
 
 <script>
 /* =====================================================================
-   HandPod, prototipo navigabile, versione 14.
+   HandPod, prototipo navigabile, versione 15.
    Divisione del lavoro come nella Tabella 6.2 della tesi:
    LOCALE (in questa pagina, nessuna rete): calcolo nutrizionale e ribilanciamento,
    vincoli di sicurezza, profili e loro creazione (incluso il riconoscimento delle
@@ -1907,16 +1914,16 @@ function renderScreen(){
  const F=faceFor(), P=S.phase; setFace(F.n);
  const open=P==="load"||P==="close_wait"; if(open&&!rig.classList.contains("open")) layoutRig();
  const wantsClick=P==="close_wait"||(P==="load"&&S.load&&S.load.waiting)||(P==="prep"&&S.prep.waitPod);
- rig.classList.toggle("open",open); device.classList.toggle("closable",wantsClick); document.body.classList.toggle("closable",wantsClick);
+ const wasOpen=rig.classList.contains("open"); rig.classList.toggle("open",open); if(wasOpen!==open) fitRig(); device.classList.toggle("closable",wantsClick); document.body.classList.toggle("closable",wantsClick); document.body.classList.toggle("tapwait",!!(S.session&&!S.session.ended&&TAP_PHASES()));
  let key="", html="";
  if(P==="profile"){ key="profile"; html=profileHTML(); }
  else if(P==="compose"){ const k=composeView(); key=k.key; html=k.html; }
  setContent(key,html); requestAnimationFrame(fitText);
 }
 /* posizioni della ciotola e del device affiancati; se lo spazio non basta l'insieme si riduce */
-function layoutRig(){ const sz=device.offsetWidth, W=rig.clientWidth; if(!sz) return; const k=Math.min(1,W/(2.2*sz));
+function layoutRig(Wt){ const sz=device.offsetWidth, W=Wt||rig.clientWidth; if(!sz) return; const k=Math.min(1,W/(2.2*sz));
  rig.style.setProperty("--k",k.toFixed(3)); rig.style.setProperty("--dx",(0.575*sz*k).toFixed(1)+"px"); }
-addEventListener("resize",()=>{ if(rig.classList.contains("open")) layoutRig(); });
+addEventListener("resize",()=>{ if(rig.classList.contains("open")) layoutRig(); if(typeof fitRig==="function") fitRig(); });
 
 /* ---------- 12b. LA CONVERSAZIONE: ogni frase della macchina è un messaggio in chat ---------- */
 /* La frase legata allo stato è ricavata dallo stesso stato che sceglie la faccina (faceFor). */
@@ -2066,8 +2073,13 @@ function goScreen(to,via,abs){ const c=S.comp; if(!c) return; c.reworkOff=false;
 /* chiusura del coperchio: un clic in un punto qualsiasi dello schermo (fuori dalla conversazione), solo quando la macchina lo ha chiesto */
 /* clic di attesa (versare, richiudere, prendere la Pod): in un punto qualsiasi dello schermo fuori dalla conversazione e dal pannello.
    Un clic nato prima dell'attesa (es. lo stesso clic su Conferma) non conta. */
-document.addEventListener("click",e=>{ if(!S.session||S.session.ended||e.target.closest(".voice,.panel,.setup")) return; if(S.waitSince!=null&&e.timeStamp<S.waitSince) return;
- if(S.phase==="load"&&S.load&&S.load.waiting) pourCurrent(); else if(S.phase==="close_wait") closeLid(); else if(S.phase==="prep"&&S.prep.waitPod) showPod(); });
+/* "(click per procedere)": ogni attesa di un clic si scioglie con un clic in qualunque punto della pagina, fuori dalla
+   conversazione, dal pannello e dalla sua freccia. Il riposo, il saluto, il profilo appena creato e il "Tocca per comporre"
+   senza rete passano da tapScreen; un clic sullo schermo del device lo gestisce già il suo ascoltatore. */
+function TAP_PHASES(){ return S.phase==="rest"||S.phase==="greet"||S.phase==="create_done"||(S.phase==="listen"&&!remoteReady()&&!S.pending); }
+document.addEventListener("click",e=>{ if(!S.session||S.session.ended||e.target.closest(".voice,.panel,.panelWrap,.ptog,.setup,.chatcol")) return; if(S.waitSince!=null&&e.timeStamp<S.waitSince) return;
+ if(S.phase==="load"&&S.load&&S.load.waiting) pourCurrent(); else if(S.phase==="close_wait") closeLid(); else if(S.phase==="prep"&&S.prep.waitPod) showPod();
+ else if(TAP_PHASES()&&!e.target.closest("#screen")){ S.waitSince=null; tapScreen(); } });
 screen.addEventListener("click",e=>{
  if(swallow){ swallow=false; return; }
  if(!S.session||S.session.ended||S.phase==="close_wait"||S.phase==="load"||(S.phase==="prep"&&S.prep.waitPod)) return;
@@ -2134,7 +2146,13 @@ function answerSlotTaste(text){ const a=S.slotAsk, p=prof(); p.tastes[a.slot]=te
 const panel=document.getElementById("panel");
 /* apertura e chiusura del pannello: strumento del ricercatore; ogni passaggio va nel log con l'orario */
 const appEl=document.getElementById("app"), ptog=document.getElementById("ptog");
-function setPanel(open,via){ S.ui.panelOpen=!!open; appEl.classList.toggle("pOpen",S.ui.panelOpen); ptog.setAttribute("aria-expanded",String(S.ui.panelOpen)); ptog.setAttribute("aria-label",T("pTog"));
+function fitRig(open){ const stg=document.querySelector(".stage"), dev=device.offsetWidth; if(!stg||!dev) return;
+ const pw=Math.min(380,innerWidth*0.34), portrait=innerWidth<=innerHeight; let w=stg.clientWidth-16;
+ if(!portrait&&open!==undefined&&open!==S.ui.panelOpen) w+=open?-pw:pw; // larghezza che avrà il palco a transizione finita
+ // con la ciotola aperta la disposizione si adatta già alla larghezza (layoutRig): niente seconda riduzione
+ if(rig.classList.contains("open")){ rig.style.setProperty("--kp","1"); layoutRig(portrait?undefined:w+16); return; }
+ const k=portrait?1:Math.min(1,w/dev); rig.style.setProperty("--kp",k.toFixed(3)); }
+function setPanel(open,via){ fitRig(!!open); S.ui.panelOpen=!!open; appEl.classList.toggle("pOpen",S.ui.panelOpen); ptog.setAttribute("aria-expanded",String(S.ui.panelOpen)); ptog.setAttribute("aria-label",T("pTog"));
  document.getElementById("panelWrap").setAttribute("aria-hidden",String(!S.ui.panelOpen)); ptog.title=T("pTog");
  log("panel_toggle",{open:S.ui.panelOpen, via:via||"arrow"}); }
 ptog.addEventListener("click",()=>{ setPanel(!S.ui.panelOpen,"arrow"); if(S.ui.panelOpen&&S.phase==="done") setTimeout(()=>{ const eb=panel.querySelector(".endbox"); if(eb) eb.scrollIntoView({behavior:"smooth",block:"end"}); },460); });
