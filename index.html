@@ -296,7 +296,7 @@ details summary{cursor:pointer;font-size:13.5px}
 
 <script>
 /* =====================================================================
-   HandPod, prototipo navigabile, versione 15.
+   HandPod, prototipo navigabile, versione 15.1.
    Divisione del lavoro come nella Tabella 6.2 della tesi:
    LOCALE (in questa pagina, nessuna rete): calcolo nutrizionale e ribilanciamento,
    vincoli di sicurezza, profili e loro creazione (incluso il riconoscimento delle
@@ -328,7 +328,7 @@ const DEFAULT_LANG = "it";
 const STRINGS = {
  it:{
   listening:"Cosa prepariamo", listeningNamed:"Hey {n}, cosa prepariamo?", greetTime:"Sono le {h}, {q}", greetQ:{colazione:"pensiamo alla colazione?",pranzo:"pensiamo al pranzo?",merenda:"pensiamo alla merenda?",cena:"pensiamo alla cena?",spuntino:"pensiamo a uno spuntino?"},
-  sumOpen:"Quindi, riassumendo,", swipeNote:"(swipe per leggere ingredienti e valori nutrizionali)", endNote:"(click sulla freccia di destra per continuare o terminare la sessione)",
+  sumOpen:"Quindi, riassumendo,", swipeNote:"(swipe per leggere ingredienti e valori nutrizionali)", endNote:"(dalla scheda di destra puoi continuare o terminare la sessione)",
   pEndBox:"Fine della Pod", pNewComp:"Continua la sessione", pNewCompHint:"Stesso partecipante: la macchina torna al riposo e i profili creati restano fra i cerchi della scelta profilo.", pCloseSes:"Termina la sessione ed esporta il log", pCloseHint:"Salva il log JSON e riparte da zero dall'identificativo: i profili creati in questa sessione non restano.",
   sesClosed:"Sessione terminata · file del log generato: {f}", sesCloseFail:"Il log non è stato salvato: la sessione resta aperta.", thinking:"Sto pensando", thought:"Ho pensato a", confirm:"Conferma", rework:"Rielabora", guest:"ospite",
   reworkOff:"Senza rete non riformulo a parole: modifica gli ingredienti",
@@ -381,7 +381,7 @@ const STRINGS = {
  },
  en:{
   listening:"What shall we make", listeningNamed:"Hey {n}, what shall we make?", greetTime:"It's {h}, {q}", greetQ:{colazione:"shall we think about breakfast?",pranzo:"shall we think about lunch?",merenda:"shall we think about an afternoon snack?",cena:"shall we think about dinner?",spuntino:"shall we think about a snack?"},
-  sumOpen:"So, to sum up,", swipeNote:"(swipe to read ingredients and nutrition values)", endNote:"(click the arrow on the right to continue or end the session)",
+  sumOpen:"So, to sum up,", swipeNote:"(swipe to read ingredients and nutrition values)", endNote:"(from the panel on the right you can continue or end the session)",
   pEndBox:"End of the Pod", pNewComp:"Continue the session", pNewCompHint:"Same participant: the machine goes back to rest and the profiles created stay among the profile circles.", pCloseSes:"End the session and export the log", pCloseHint:"Saves the JSON log and starts again from the identifier: profiles created in this session are not kept.",
   sesClosed:"Session ended · log file generated: {f}", sesCloseFail:"The log was not saved: the session stays open.", thinking:"I'm thinking", thought:"I thought of", confirm:"Confirm", rework:"Rework", guest:"guest",
   reworkOff:"Offline I can't rephrase it: edit the ingredients",
@@ -1471,7 +1471,9 @@ function showPod(){
  podEl.style.backgroundPosition=`${c.x/(POD_IMG.w-c.s)*100}% ${c.y/(POD_IMG.h-c.s)*100}%`;
  device.classList.add("podded"); S.phase="done";
  log("pod_shown",{variant:v+1, of:4, name:c.name, crop:{x:c.x,y:c.y,w:c.s,h:c.s}, cycle:S.session.cycle});
- render(); noteLine("endNote"); // la sessione resta aperta: dalla freccia del pannello si continua o si chiude
+ render(); noteLine("endNote"); // la sessione resta aperta: la scheda di destra si apre da sola sui comandi di fine
+ setTimeout(()=>{ if(S.phase!=="done"||!S.session||S.session.ended) return; if(!S.ui.panelOpen) setPanel(true,"auto_pod");
+  setTimeout(()=>{ const eb=panel.querySelector(".endbox"); if(eb) eb.scrollIntoView({behavior:"smooth",block:"end"}); },460); },900);
 }
 /* NUOVA COMPOSIZIONE (dal pannello, dopo la Pod): stesso profilo, la conversazione resta; la macchina torna in ascolto */
 function newComposition(){
@@ -1675,6 +1677,8 @@ function createStep(value){
  if(P==="create_deep"){ d.deepA=v; ans("follow-up",T("deepIntro")+" "+d.deepQ,d.deepA);
   /* se la domanda chiedeva di un momento mancante, la risposta compila quel momento; poi i momenti nominati */
   if(d.askedAbout&&!NONE_RE.test(v)&&!/^(no|non so|boh|niente|nulla)\b/i.test(v)) d.tastes[d.askedAbout]=v.slice(0,80);
+  /* lo spuntino non ha una domanda sua: prende la risposta sulla merenda (i due piccoli pasti fuori dai pasti principali) */
+  if(d.askedAbout==="merenda"&&d.tastes.merenda&&!d.tastes.spuntino){ d.tastes.spuntino=d.tastes.merenda; d.spuntinoFrom="merenda"; log("profile_spuntino_from_merenda",{}); }
   for(const [k,x] of Object.entries(extractSlots(v))) if(!d.tastes[k]) d.tastes[k]=x.slice(0,80);
   goNext("DEEP"); return; }
  if(P==="create_clarify"){ answerClarify(v); return; }
@@ -1722,12 +1726,50 @@ function profileIssues(p){ const out=[], t=Object.values(p.tastes||{}).filter(Bo
 function withLead(t){ t=String(t||"").trim(); const lead=T("sumOpen"); if(!t) return t; if(t.toLowerCase().startsWith(lead.toLowerCase().replace(/,$/,""))) return t;
  return lead+" "+t.charAt(0).toLowerCase()+t.slice(1); }
 function localSummary(p){ return withLead(localSummary0(p)); }
-function localSummary0(p){ const L=S.lang==="it", tl=k=>p.tastes[k]?String(p.tastes[k]).split(/[,;]/)[0].trim():null;
- const meals=["colazione","pranzo","cena","merenda"].filter(k=>tl(k)).map(k=>(L?T("slotsAt."+k):T("slotsAt."+k))+" "+tl(k));
- const h=p.health||{}, lim=[...HEALTH_KINDS.flatMap(k=>(h[k]||[]).map(x=>hLabel(k,x)))]; const diet=p.diet&&p.diet.tags&&p.diet.tags.length?p.diet.tags.join(", "):null;
- let a=meals.length?(L?"Ti piace mangiare ":"You like to eat ")+meals.join(", ")+".":(L?"Ti piace: ":"You like: ")+(p.likes||"").slice(0,80)+".";
- const b=[lim.length?(L?"tengo conto di ":"I take into account ")+lim.join(", "):null, diet?(L?"dieta ":"diet ")+diet:null, (p.refusedIds||[]).length?(L?"niente ":"no ")+p.refusedIds.slice(0,3).map(x=>nm(x).toLowerCase()).join(", "):null].filter(Boolean);
- return a+(b.length?" "+cap(b.join("; "))+".":""); }
+/* Riassunto senza rete: non ripete le parole della risposta ma ne ricava il carattere di ogni pasto
+   (dolce o salato, ricco di carboidrati, centrato sulle proteine, leggero), tenendo un riferimento concreto
+   quando c'è (i biscotti, le uova). Es.: "latte e biscotti, lasagna, carne" → colazione classica coi biscotti,
+   pranzo strutturato e ricco di carboidrati, sera più leggera con proteine e vegetali. */
+const GIST_RE={sweet:/biscott|cornett|brioche|croissant|marmellat|nutella|cioccolat|torta|crostat|cereal|fette biscottate|miele|dolc|pancake|muffin|sweet|cookie|jam/i,
+ savory:/salat|uov|prosciutt|formagg|toast|avocado|bacon|savou?ry|egg|cheese/i,
+ carbs:/pasta|lasagn|riso|risott|pizza|gnocch|pane\b|panin|polenta|cous|farro|orzo|patat|piadin|focacc|carbo|rice|bread|noodle|potato/i,
+ rich:/lasagn|carbonar|amatrician|ragù|ragu|parmigian|fritt|pizza|sostanzios|ricc|abbondant|strutturat|hearty|rich/i,
+ protein:/carn|manzo|maial|pollo|tacchin|bistecc|hamburger|pesce|salmon|tonno|uov|legum|ceci|lenticch|fagiol|tofu|proteic|meat|chicken|beef|fish|egg|protein|bean/i,
+ light:/legger|insalat|verdur|minestr|zupp|passat|brodo|vellutat|frutta|yogurt|light|salad|vegetable|soup|fruit/i,
+ veg:/verdur|insalat|ortagg|contorn|vegetal|vegetable|salad|greens/i,
+ milk:/latte|cappuccin|caffelatte|milk/i};
+const GIST_ANCHOR=[[/biscott|cookie/i,{it:"coi biscotti",en:"with biscuits"}],[/cornett|brioche|croissant/i,{it:"col cornetto",en:"with a croissant"}],[/yogurt/i,{it:"con lo yogurt",en:"with yogurt"}],
+ [/cereal/i,{it:"coi cereali",en:"with cereal"}],[/fette biscottate|marmellat|jam/i,{it:"con pane e marmellata",en:"with toast and jam"}],[/uov|egg/i,{it:"con le uova",en:"with eggs"}],[/frutta|fruit/i,{it:"con la frutta",en:"with fruit"}]];
+function mealGist(k,txt){ const L=S.lang==="it"?"it":"en", t=String(txt||""), has=x=>GIST_RE[x].test(t), anc=(GIST_ANCHOR.find(([re])=>re.test(t))||[])[1];
+ const A=anc?" "+anc[L]:"";
+ if(k==="colazione"){ if(has("savory")&&!has("sweet")) return L==="it"?"una colazione salata"+A:"a savoury breakfast"+A;
+  if(has("sweet")||has("milk")) return L==="it"?"una colazione classica"+A:"a classic breakfast"+A;
+  if(has("light")) return L==="it"?"una colazione leggera"+A:"a light breakfast"+A; return null; }
+ const meal=L==="it"?{pranzo:"un pranzo",cena:"una cena",merenda:"una merenda",spuntino:"uno spuntino"}[k]:{pranzo:"a lunch",cena:"a dinner",merenda:"an afternoon snack",spuntino:"a late snack"}[k];
+ if(has("carbs")&&has("light")&&!has("rich")) return L==="it"?meal+" equilibrato tra carboidrati e verdure":"a "+meal.replace(/^an? /,"")+" balanced between carbohydrates and vegetables";
+ if(has("carbs")&&(has("rich")||!has("light"))) return L==="it"?meal+(has("rich")?" strutturato e ricco di carboidrati":" a base di carboidrati"):meal+(has("rich")?" that is hearty and rich in carbohydrates":" built on carbohydrates");
+ if(has("protein")&&!has("carbs")){ if(k==="cena") return L==="it"?"la sera restare più leggero con proteine e vegetali":"to keep the evening lighter with protein and vegetables";
+  return L==="it"?meal+" centrato sulle proteine"+(has("veg")?" e le verdure":""):meal+" centred on protein"+(has("veg")?" and vegetables":""); }
+ if(has("light")) return L==="it"?(k==="cena"?"la sera restare leggero":meal+" leggero"):(k==="cena"?"to keep the evening light":"a light "+meal.replace(/^an? /,""));
+ if(has("sweet")) return L==="it"?meal+" dolce":"a sweet "+meal.replace(/^an? /,"");
+ if(has("savory")) return L==="it"?meal+" salato":"a savoury "+meal.replace(/^an? /,""); return null; }
+function joinList(a,L){ return a.length<2?a.join(""):a.slice(0,-1).join(", ")+(L?" e ":" and ")+a[a.length-1]; }
+function localSummary0(p){ const L=S.lang==="it", tl=k=>p.tastes[k]||null;
+ const parts=["colazione","pranzo","cena"].map(k=>tl(k)?mealGist(k,tl(k)):null).filter(Boolean);
+ const snack=tl("merenda")?mealGist("merenda",tl("merenda")):null;
+ // "ti piace una colazione…, un pranzo… e la sera ti piace restare…": la sera, se è una preferenza di misura, diventa una frase a sé
+ const ev=parts.findIndex(x=>/^la sera|^to keep the evening/.test(x)); let a;
+ if(parts.length){ const head=parts.filter((_,i)=>i!==ev), tail=ev>=0?parts[ev]:null;
+  a=(L?"ti piace ":"you like ")+(head.length?(tail?head.join(", "):joinList(head,L)):"")+(tail?(head.length?(L?" e ":" and "):"")+(L?tail.replace(/^la sera /,"la sera ti piace "):(head.length?"you like ":"")+tail):"")+(snack?(L?"; fuori pasto "+snack.replace(/^una merenda /,"qualcosa di "):"; between meals "+snack):"")+".";
+  if(!head.length&&L) a="la sera ti piace "+tail.replace(/^la sera /,"")+".";
+ } else a=(L?"ti piace: ":"you like: ")+(p.likes||"").slice(0,80)+".";
+ const h=p.health||{}, avoid=[...(h.allergies||[]).map(x=>hLabel("allergies",x)),...(h.intolerances||[]).map(x=>hLabel("intolerances",x))], cond=(h.conditions||[]).map(x=>hLabel("conditions",x));
+ const diet=p.diet&&p.diet.tags&&p.diet.tags.length?p.diet.tags.join(L?" e ":" and "):null, ref=(p.refusedIds||[]).slice(0,3).map(x=>nm(x).toLowerCase());
+ const b=[avoid.length?(L?"evito ":"I avoid ")+joinList(avoid,L):null, cond.length?(L?"tengo conto di ":"I take into account ")+joinList(cond,L):null,
+  diet?(L?"seguo la tua dieta ":"I follow your ")+diet+(L?"":" diet"):null, ref.length?(L?"niente ":"no ")+joinList(ref,L):null].filter(Boolean);
+ return cap(a)+(b.length?" "+cap(b.join(", "))+".":""); }
+/* come deve suonare il riassunto: generalizzare nel concreto, non ripetere */
+function SUMMARY_STYLE(){ return `Generalise concretely: for each meal say what kind of eating it is (classic or savoury breakfast, structured and carbohydrate-rich lunch, lighter evening with protein and vegetables, and so on), keeping one concrete reference when it helps, so the person hears that you understood the pattern behind their words. Do not repeat their answers word for word, do not list the fields one by one, no praise, no health advice. Example: answers «colazione latte e biscotti, pranzo lasagna, cena carne» → «${S.lang==="it"?"Quindi, riassumendo, ti piace una colazione classica coi biscotti, un pranzo strutturato e ricco di carboidrati e la sera ti piace restare più leggero con proteine e vegetali.":"So, to sum up, you like a classic breakfast with biscuits, a structured, carbohydrate-rich lunch, and in the evening you like to stay lighter with protein and vegetables."}». Then, briefly, what you will avoid or take into account.`; }
 function summaryPrompt(p,issues){ const L=LANGNAME[S.lang], h=p.health||{};
  const data={name:p.name, path:p.mode, likes:p.likes, tastes_by_meal:p.tastes, age:p.age, weight_kg:p.weight,
   allergies:h.allergies&&h.allergies.map(x=>hLabel("allergies",x)), intolerances:h.intolerances&&h.intolerances.map(x=>hLabel("intolerances",x)), conditions:h.conditions&&h.conditions.map(x=>hLabel("conditions",x)),
@@ -1735,14 +1777,14 @@ function summaryPrompt(p,issues){ const L=LANGNAME[S.lang], h=p.health||{};
  return `HandPod, a home food device, has just built a person's profile from their answers. Data (null = not asked): ${JSON.stringify(data)}
 Local checks found these possible problems: ${issues.length?issues.join(" | "):"none"}.
 Write in ${L}:
-- "summary": it MUST start with «${T("sumOpen")}», then what you understood about how this person eats and what to avoid, as natural speech in second person, at most 2 short lines (35 words). Do not list the fields one by one, do not repeat their answers word for word, no praise, no health advice.
+- "summary": it MUST start with «${T("sumOpen")}», then what you understood about how this person eats and what to avoid, as natural speech in second person, at most 3 short lines (50 words). ${SUMMARY_STYLE()}
 - "clarify": if something is ambiguous, contradictory or incomplete in a way that matters for preparing their food (for example a meal described so vaguely it cannot be used, a taste that contradicts their diet or an allergy, an implausible value), ONE short question (max 15 words, ending with "?") about that single point; otherwise null.
 - "field": the field the question is about: likes|colazione|pranzo|merenda|cena|health|diet|refused|age|weight, or null.
 Reply with only {"summary":"...","clarify":null,"field":null}`; }
 function patchPrompt(p,question,answer){ const L=LANGNAME[S.lang], h=p.health||{};
  return `HandPod is updating a person's food profile. Current data: ${JSON.stringify({likes:p.likes, tastes_by_meal:p.tastes, age:p.age, weight_kg:p.weight, health_answer:p.allergyText||null, diet_text:p.diet&&p.diet.text, never_wants_text:p.refused&&p.refused.text})}
 The device asked: «${question}». The person answered: «${answer}».
-Return the fields to change (null = unchanged). health_text, diet_text and never_wants_text must be the full updated text, written so that names of allergies, intolerances, conditions, diets and ingredients stay explicit. Then a new "summary" in ${L} of the updated profile, starting with «${T("sumOpen")}»: natural second person speech, at most 2 short lines, no field-by-field list.
+Return the fields to change (null = unchanged). health_text, diet_text and never_wants_text must be the full updated text, written so that names of allergies, intolerances, conditions, diets and ingredients stay explicit. Then a new "summary" in ${L} of the updated profile, starting with «${T("sumOpen")}»: natural second person speech, at most 3 short lines. ${SUMMARY_STYLE()}
 Reply with only {"patch":{"likes":null,"tastes_by_meal":{"colazione":null,"pranzo":null,"merenda":null,"cena":null,"spuntino":null},"age":null,"weight_kg":null,"health_text":null,"diet_text":null,"never_wants_text":null},"summary":"..."}`; }
 function applyPatch(pt){ const d=S.draft, ch=[]; if(!pt||typeof pt!=="object") return ch;
  if(typeof pt.likes==="string"&&pt.likes.trim()){ d.likes=pt.likes.trim().slice(0,200); ch.push("likes"); }
@@ -1865,7 +1907,7 @@ function cleanQ(q,likes){ q=String(q||"").trim().replace(/^["«»“”']+|["«�
  const words=q.split(/\s+/).filter(Boolean); if(words.length<3||words.length>15) return null;
  const a=String(likes||"").toLowerCase().trim(); if(a.length>=12&&q.toLowerCase().includes(a)) return null; return q; }
 /* GUSTI: la prima risposta copre colazione, pranzo e cena; la seconda domanda è fissa e chiede solo la merenda.
-   Nessuna chiamata al modello in questa fase. Lo spuntino resta da completare alla prima composizione in quella fascia. */
+   Nessuna chiamata al modello in questa fase. La risposta sulla merenda vale anche per lo spuntino. */
 function askDeep(){
  const d=S.draft; d.tastes=d.tastes||{};
  Object.assign(d.tastes, extractMeals(d.likes));
