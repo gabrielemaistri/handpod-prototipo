@@ -197,6 +197,8 @@ body.closable,.device.closable,body.tapwait{cursor:pointer}
 
 /* ---------- conversation card: simulates the spoken dialogue (prototype tool, outside the product) ---------- */
 .voice{width:100%;box-sizing:border-box;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;min-height:0}
+/* OFFLINE: sempre visibile in cima alla chat finché il modello remoto non è raggiungibile (rete spenta, nessuna chiave, chiamate bloccate) */
+.offbadge{flex:none;color:var(--clk);font-size:12px;font-weight:600;letter-spacing:.14em}
 .msgs{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:6px;padding:2px 2px 4px}
 .msgs .empty{margin:auto;font-size:12px;color:var(--fg-2)}
 .msg{max-width:90%;display:flex;flex-direction:column;gap:1px;opacity:0;transition:opacity 210ms var(--ease)}
@@ -262,6 +264,7 @@ details summary{cursor:pointer;font-size:13.5px}
 <div id="app">
   <section class="chatcol">
     <form class="voice" id="voiceForm" autocomplete="off">
+      <div class="offbadge" id="offBadge" role="status" hidden>OFFLINE</div>
       <label for="voiceIn" id="voiceLabel"></label>
       <div class="msgs" id="msgs" aria-live="polite"></div>
       <div class="vrow"><input id="voiceIn" type="text" maxlength="2000"><button class="pillbtn" id="voiceSend" type="submit"></button></div>
@@ -296,7 +299,7 @@ details summary{cursor:pointer;font-size:13.5px}
 
 <script>
 /* =====================================================================
-   HandPod, prototipo navigabile, versione 15.1.
+   HandPod, prototipo navigabile, versione 15.2.
    Divisione del lavoro come nella Tabella 6.2 della tesi:
    LOCALE (in questa pagina, nessuna rete): calcolo nutrizionale e ribilanciamento,
    vincoli di sicurezza, profili e loro creazione (incluso il riconoscimento delle
@@ -2156,6 +2159,7 @@ const voiceForm=document.getElementById("voiceForm"), voiceIn=document.getElemen
 const voiceMode=()=>{ if(!S.session||S.session.ended) return "idle"; if(S.phase==="listen") return remoteReady()?"listen":"off"; if(S.phase==="rework") return "rework"; if(S.phase.startsWith("create_")&&S.phase!=="create_done"&&S.phase!=="create_summary") return S.phase; if(S.phase==="slot_taste") return "slot_taste";
  if(S.phase==="compose"&&S.fixOffer&&!S.pending) return "fix"; if(S.phase==="close_wait") return "close"; if((S.phase==="load"&&S.load&&S.load.waiting)||(S.phase==="prep"&&S.prep.waitPod)) return "click"; return "idle"; };
 function renderVoice(){
+ document.getElementById("offBadge").hidden=remoteReady();
  const m=voiceMode(), on=!["idle","off","close","click"].includes(m)&&!S.pending;
  document.getElementById("voiceLabel").textContent=T("vLabel."+(m==="off"?"listen":(m==="close"||m==="click"?"idle":m)));
  voiceIn.placeholder=m==="listen"?T("vPh"):""; voiceIn.disabled=!on; document.getElementById("voiceSend").disabled=!on; document.getElementById("voiceSend").textContent=T("vSend");
