@@ -299,7 +299,7 @@ details summary{cursor:pointer;font-size:13.5px}
 
 <script>
 /* =====================================================================
-   HandPod, prototipo navigabile, versione 15.2.
+   HandPod, prototipo navigabile, versione 15.3.
    Divisione del lavoro come nella Tabella 6.2 della tesi:
    LOCALE (in questa pagina, nessuna rete): calcolo nutrizionale e ribilanciamento,
    vincoli di sicurezza, profili e loro creazione (incluso il riconoscimento delle
@@ -340,7 +340,7 @@ const STRINGS = {
   modeAgain:"Non ho capito bene: facciamo il profilo completo o partiamo veloci?",
   quickOk:"Va bene, allora ti faccio solo qualche domanda di contesto.", fullOk:"Va bene, facciamo il profilo completo: una domanda alla volta.",
   askTastes:"Quali sono i tuoi gusti? Descrivimi cosa mangi a colazione, pranzo e cena.", askAge:"Quanti anni hai?", askWeight:"Quanto pesi?",
-  askHealth:"Hai allergie, intolleranze o malattie che influenzano la tua dieta?", askDiet:"Segui una dieta particolare?", askRefuse:"Ci sono ingredienti che non vuoi mai, anche senza un motivo medico?",
+  askHealth:"Hai allergie, intolleranze o malattie che influenzano la tua dieta?", askHealthGuest:"Prima di cominciare: hai allergie, intolleranze o malattie che influenzano la tua dieta?", askDiet:"Segui una dieta particolare?", askRefuse:"Ci sono ingredienti che non vuoi mai, anche senza un motivo medico?",
   loadAsk:"{i} {q}, dimmi quando proseguire",
   hello:"Ciao", deepIntro:"Chiaro.", deepFallback:"C'è qualcosa che invece non mangeresti mai?", askMerenda:"E a merenda, cosa ti va di solito?",
   confirmQ:"Ho capito bene?", askCorrect:"Cosa devo correggere?", sumLead:"Ecco cosa ho capito:",
@@ -393,7 +393,7 @@ const STRINGS = {
   modeAgain:"I didn't quite get that: full profile or quick?",
   quickOk:"All right, then I'll just ask a few context questions.", fullOk:"All right, let's do the full profile: one question at a time.",
   askTastes:"What are your tastes? Tell me what you eat at breakfast, lunch and dinner.", askAge:"How old are you?", askWeight:"How much do you weigh?",
-  askHealth:"Do you have allergies, intolerances or conditions that affect your diet?", askDiet:"Do you follow a particular diet?", askRefuse:"Are there ingredients you never want, even without a medical reason?",
+  askHealth:"Do you have allergies, intolerances or conditions that affect your diet?", askHealthGuest:"Before we start: do you have allergies, intolerances or conditions that affect your diet?", askDiet:"Do you follow a particular diet?", askRefuse:"Are there ingredients you never want, even without a medical reason?",
   loadAsk:"{i} {q}, tell me when to go on",
   hello:"Hi", deepIntro:"Got it.", deepFallback:"Is there anything you would never eat?", askMerenda:"And for an afternoon snack, what do you usually feel like?",
   confirmQ:"Did I get that right?", askCorrect:"What should I correct?", sumLead:"Here is what I understood:",
@@ -1568,7 +1568,11 @@ function chooseProfile(key,created){
  log("profile_selected",{key, created:!!created, name:pName(prof()), kcal:prof().kcal, split:[prof().p,prof().c,prof().f], constraints_active:profileForLog(prof()).constraints_active});
  S.phase="listen"; render();
 }
-function pickProfile(k){ if(k==="plus"){ S.draft={id:"d"+Date.now(),name:"",mode:null,modeTries:0,likes:"",deepQ:"",deepA:"",deepSource:null,age:null,weight:null,healthText:null,health:null,diet:null,refused:null}; S.phase="create_name"; log("profile_create_start",{}); render(); focusVoice(); return; } chooseProfile(k,false); }
+/* OSPITE: prima di chiedere cosa vuole mangiare, la macchina chiede allergie, intolleranze e malattie.
+   La risposta vale solo per questo ospite: ogni volta che si sceglie "ospite" la scheda salute riparte vuota. */
+function startGuestHealth(){ const g=S.profiles.guest; g.health={allergies:null,intolerances:null,conditions:null,extraIds:[]}; g.allergyText=""; g.allergyWords=[]; deriveConstraints(g);
+ S.draft={id:"g"+Date.now(), guest:true, name:"", mode:"quick"}; S.phase="create_health"; log("guest_health_question",{}); render(); focusVoice(); }
+function pickProfile(k){ if(k==="guest"){ startGuestHealth(); return; } if(k==="plus"){ S.draft={id:"d"+Date.now(),name:"",mode:null,modeTries:0,likes:"",deepQ:"",deepA:"",deepSource:null,age:null,weight:null,healthText:null,health:null,diet:null,refused:null}; S.phase="create_name"; log("profile_create_start",{}); render(); focusVoice(); return; } chooseProfile(k,false); }
 /* ============ CASI LIMITE: COSA CONTA COME RISPOSTA ============
    Tre comportamenti distinti:
    1. NON HO CAPITO  -> "Scusa, non ho capito, puoi ripetere?" e la macchina resta nella stessa fase.
@@ -1689,6 +1693,9 @@ function createStep(value){
  if(P==="create_correct"){ applyCorrection(v); return; }
  if(P==="create_age"){ d.age=chk.value; ans("age",T("askAge"),v,true); goNext(P); return; }
  if(P==="create_weight"){ d.weight=chk.value; ans("weight",T("askWeight"),v,true); goNext(P); return; }
+ if(P==="create_health"&&d.guest){ const g=S.profiles.guest, h=parseHealth(chk.value); g.allergyText=v; g.allergyWords=h.matched;
+  g.health={allergies:h.allergies, intolerances:h.intolerances, conditions:h.conditions, extraIds:h.extraIds}; deriveConstraints(g);
+  ans("guest_health",T("askHealthGuest"),v,true); S.draft=null; chooseProfile("guest",false); return; }
  if(P==="create_health"){ d.healthText=v; d.health=parseHealth(chk.value); ans("health",T("askHealth"),v,true); goNext(P); return; }
  if(P==="create_diet"){ d.diet=parseDiet(chk.value); ans("diet",T("askDiet"),v,true); goNext(P); return; }
  if(P==="create_refuse"){ d.refused=parseRefused(chk.value); ans("never_ingredients",T("askRefuse"),v); log("profile_refused_parsed",{ids:d.refused.ids}); goNext(P); return; }
@@ -1986,7 +1993,7 @@ function stateMsg(){
   case "create_likes": return {sig:P+"|"+S.draft.id, once:true, pre:S.draft.mode==="quick"?[T("quickOk")]:[], text:T("askTastes")};
   case "create_age": return {sig:P, pre:[T("fullOk")], text:T("askAge")};
   case "create_weight": return {sig:P, text:T("askWeight")};
-  case "create_health": return {sig:P, text:T("askHealth")};
+  case "create_health": return {sig:P+"|"+(S.draft?S.draft.id:""), text:T(S.draft&&S.draft.guest?"askHealthGuest":"askHealth")};
   case "create_diet": return {sig:P, text:T("askDiet")};
   case "create_refuse": return {sig:P, text:T("askRefuse")};
   case "create_deep": return {sig:P+"|"+S.pendSeq, text:T("deepIntro")+" "+S.draft.deepQ};
