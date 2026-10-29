@@ -299,7 +299,7 @@ details summary{cursor:pointer;font-size:13.5px}
 
 <script>
 /* =====================================================================
-   HandPod, prototipo navigabile, versione 15.4.
+   HandPod, prototipo navigabile, versione 15.5.
    Divisione del lavoro come nella Tabella 6.2 della tesi:
    LOCALE (in questa pagina, nessuna rete): calcolo nutrizionale e ribilanciamento,
    vincoli di sicurezza, profili e loro creazione (incluso il riconoscimento delle
@@ -315,9 +315,14 @@ details summary{cursor:pointer;font-size:13.5px}
    sullo schermo restano solo faccina, titolo, ingredienti, valori, bottoni e puntini.
    ===================================================================== */
 
-/* Unità di misura mostrata: le quantità si leggono in spoon. Il calcolo resta in grammi;
-   la conversione avviene solo in visualizzazione (lista, regolazioni, messaggi in chat). */
-const SPOON_G = 5;              // 1 spoon = 5 g
+/* Unità di misura mostrata: il cucchiaio da tavola (tbsp, circa 15 ml). Il calcolo resta in grammi;
+   la conversione avviene solo in visualizzazione (lista, regolazioni, messaggi in chat).
+   Un cucchiaio raso non pesa uguale per tutte le polveri: i grammi per tbsp dipendono dalla classe
+   dell'ingrediente. VALORI DI PROGETTO (ordini di grandezza da cucina, non misure di laboratorio). */
+const TBSP_G = {iso:8, conc:8, flour:8, cereal:10, base:7, veg:7, fruit:7, nut:7, sweet:12, herb:1.5, spice:6, umami:6, analog:6, add:8};
+const TBSP_SALT_G = 18;         // sale e sale affumicato: cristalli densi
+const TBSP_DEFAULT_G = 8;
+const PINCH_G = 0.5;            // un pizzico, valore di progetto: sotto 1/8 di cucchiaio la quantità si conta in pizzichi
 const SCOOP_IN_MS = 500;        // il misurino entra e si ferma sopra la ciotola quando la macchina nomina l'ingrediente
 const POUR_MS = 1600;           // al clic: inclinazione, versata, raddrizzamento, uscita
 const BOWL_MOVE_MS = 750;       // traslazione del device e comparsa della ciotola
@@ -341,7 +346,7 @@ const STRINGS = {
   quickOk:"Va bene, allora ti faccio solo qualche domanda di contesto.", fullOk:"Va bene, facciamo il profilo completo: una domanda alla volta.",
   askTastes:"Quali sono i tuoi gusti? Descrivimi cosa mangi a colazione, pranzo e cena.", askAge:"Quanti anni hai?", askWeight:"Quanto pesi?",
   askHealth:"Hai allergie, intolleranze o malattie che influenzano la tua dieta?", askHealthGuest:"Prima di cominciare: hai allergie, intolleranze o malattie che influenzano la tua dieta?", askDiet:"Segui una dieta particolare?", askRefuse:"Ci sono ingredienti che non vuoi mai, anche senza un motivo medico?",
-  loadAsk:"{i} {q}, dimmi quando proseguire",
+  loadAsk:"{i} {q}, dimmi quando proseguire", pinch:"un pizzico", pinches:"{n} pizzichi",
   hello:"Ciao", deepIntro:"Chiaro.", deepFallback:"C'è qualcosa che invece non mangeresti mai?", askMerenda:"E a merenda, cosa ti va di solito?",
   confirmQ:"Ho capito bene?", askCorrect:"Cosa devo correggere?", sumLead:"Ecco cosa ho capito:",
   mixing:"Sto mescolando", pressing:"Sto pressando", ready:"È pronto, prendi la tua Pod!",
@@ -369,7 +374,7 @@ const STRINGS = {
   pExportNA:"Esportazione non disponibile in questa vista", pExportWait:"Esportazione in preparazione…", pSaved:"Log salvato", pDeclined:"Salvataggio annullato", pExportErr:"Salvataggio non riuscito",
   pNet:"Rete", netOn:"Connessa", netOff:"Scollegata", keep:"Continua", lose:"Si perde",
   keepList:"Calcolo e ribilanciamento · Vincoli · Profili e creazione profilo · Riassunto del profilo (versione locale) · Fasce orarie · Composizione ingrediente per ingrediente · Caricamento e preparazione · Log", loseList:"Comprensione delle frasi · Rielaborazione a parole · Riga del perché dal modello · Riassunto e chiarimento del profilo dal modello · Correzioni della scheda lette dal modello",
-  pArch:"Dove gira ogni funzione", archF:["Calcolo nutrizionale, ribilanciamento, quantità in spoon","Vincoli di sicurezza: allergie, intolleranze, condizioni, dieta, ingredienti rifiutati, limiti di processo","Riga calma del vincolo con alternativa proposta","Domande della creazione profilo e lettura delle risposte (età, peso, salute, dieta, gusti per pasto)","Riconoscimento di allergie, intolleranze, condizioni e diete scritte","Controllo delle risposte e casi limite","Fascia di consumo, ora del saluto, energia per fascia","Livello espressivo: faccine, frasi in chat, annotazioni","Caricamento della ciotola, chiusura, preparazione simulata, Pod","Log, esportazione e importazione della sessione","Scelta fra profilo veloce e completo quando le regole locali non bastano","Traduzione intento → formulazione (e frasi fuori tema)","Rielaborazione della proposta","Riga del perché ricalcolata","Riassunto del profilo e domanda di chiarimento","Aggiornamento della scheda dopo chiarimento o correzione"],
+  pArch:"Dove gira ogni funzione", archF:["Calcolo nutrizionale, ribilanciamento, quantità in tbsp","Vincoli di sicurezza: allergie, intolleranze, condizioni, dieta, ingredienti rifiutati, limiti di processo","Riga calma del vincolo con alternativa proposta","Domande della creazione profilo e lettura delle risposte (età, peso, salute, dieta, gusti per pasto)","Riconoscimento di allergie, intolleranze, condizioni e diete scritte","Controllo delle risposte e casi limite","Fascia di consumo, ora del saluto, energia per fascia","Livello espressivo: faccine, frasi in chat, annotazioni","Caricamento della ciotola, chiusura, preparazione simulata, Pod","Log, esportazione e importazione della sessione","Scelta fra profilo veloce e completo quando le regole locali non bastano","Traduzione intento → formulazione (e frasi fuori tema)","Rielaborazione della proposta","Riga del perché ricalcolata","Riassunto del profilo e domanda di chiarimento","Aggiornamento della scheda dopo chiarimento o correzione"],
   loc:"Locale", rem:"Remoto", active:"attivo", inactive:"non attivo",
   declare:"Le funzioni segnate Remoto usano un modello remoto: dentro Claude passano da Claude, sul sito dal servizio scelto nel pannello. Senza rete il riassunto del profilo e le correzioni della scheda passano alla versione locale; le altre funzioni remote si fermano e si compone toccando lo schermo. Nell'architettura proposta dalla tesi la traduzione sta a bordo, con il cloud solo come ripiego: il prototipo riproduce la divisione fra funzioni locali e remote, non l'inferenza a bordo.", offlineLocal:"senza rete: versione locale", viaClaude:"via Claude",
   pExpr:"Faccina e stato", noFace:"nessuna faccina su questa schermata", pSim:"Simulazioni a tempo dichiarate: caricamento della ciotola dopo Conferma, ingrediente per ingrediente al clic della persona, e sequenza 5-6 dopo la chiusura del coperchio (3,2 s per passo).",
@@ -394,7 +399,7 @@ const STRINGS = {
   quickOk:"All right, then I'll just ask a few context questions.", fullOk:"All right, let's do the full profile: one question at a time.",
   askTastes:"What are your tastes? Tell me what you eat at breakfast, lunch and dinner.", askAge:"How old are you?", askWeight:"How much do you weigh?",
   askHealth:"Do you have allergies, intolerances or conditions that affect your diet?", askHealthGuest:"Before we start: do you have allergies, intolerances or conditions that affect your diet?", askDiet:"Do you follow a particular diet?", askRefuse:"Are there ingredients you never want, even without a medical reason?",
-  loadAsk:"{i} {q}, tell me when to go on",
+  loadAsk:"{i} {q}, tell me when to go on", pinch:"a pinch", pinches:"{n} pinches",
   hello:"Hi", deepIntro:"Got it.", deepFallback:"Is there anything you would never eat?", askMerenda:"And for an afternoon snack, what do you usually feel like?",
   confirmQ:"Did I get that right?", askCorrect:"What should I correct?", sumLead:"Here is what I understood:",
   mixing:"Mixing", pressing:"Pressing", ready:"It's ready, take your Pod!",
@@ -422,7 +427,7 @@ const STRINGS = {
   pExportNA:"Export not available in this view", pExportWait:"Preparing export…", pSaved:"Log saved", pDeclined:"Save cancelled", pExportErr:"Save failed",
   pNet:"Network", netOn:"Connected", netOff:"Disconnected", keep:"Keeps working", lose:"Lost",
   keepList:"Calculation and rebalancing · Constraints · Profiles and profile creation · Profile summary (local version) · Eating moments · Composing ingredient by ingredient · Loading and preparation · Log", loseList:"Sentence understanding · Rework in words · The model's why line · Profile summary and clarification from the model · Card corrections read by the model",
-  pArch:"Where each function runs", archF:["Nutritional calculation, rebalancing, spoon amounts","Safety constraints: allergies, intolerances, conditions, diet, refused ingredients, process limits","Calm constraint line with a proposed alternative","Profile creation questions and reading the answers (age, weight, health, diet, tastes by meal)","Recognising typed allergies, intolerances, conditions and diets","Answer checks and edge cases","Eating moment, greeting time, energy by moment","Expressive layer: faces, chat phrases, annotations","Bowl loading, closing, simulated preparation, Pod","Log, session export and import","Full or quick profile choice when local rules are not enough","Intent → formulation translation (and off-topic phrases)","Proposal rework","Recomputed why line","Profile summary and clarifying question","Card update after a clarification or correction"],
+  pArch:"Where each function runs", archF:["Nutritional calculation, rebalancing, tbsp amounts","Safety constraints: allergies, intolerances, conditions, diet, refused ingredients, process limits","Calm constraint line with a proposed alternative","Profile creation questions and reading the answers (age, weight, health, diet, tastes by meal)","Recognising typed allergies, intolerances, conditions and diets","Answer checks and edge cases","Eating moment, greeting time, energy by moment","Expressive layer: faces, chat phrases, annotations","Bowl loading, closing, simulated preparation, Pod","Log, session export and import","Full or quick profile choice when local rules are not enough","Intent → formulation translation (and off-topic phrases)","Proposal rework","Recomputed why line","Profile summary and clarifying question","Card update after a clarification or correction"],
   loc:"Local", rem:"Remote", active:"active", inactive:"inactive",
   declare:"Functions marked Remote use a remote model: inside Claude through Claude, on the website through the service chosen in the panel. Offline, the profile summary and card corrections switch to the local version; the other remote functions stop and composing happens by tapping the screen. In the architecture the thesis proposes, translation runs on the device, with the cloud only as a fallback: the prototype reproduces the split between local and remote functions, not on-device inference.", offlineLocal:"offline: local version", viaClaude:"via Claude",
   pExpr:"Face and state", noFace:"no face on this screen", pSim:"Declared timed simulations: loading the bowl after Confirm, one ingredient per participant click, and sequence 5-6 after the lid is closed (3.2 s per step).",
@@ -897,11 +902,22 @@ const S = {
 };
 const T=(k,vars)=>{ let s=k.split(".").reduce((o,p)=>o&&o[p],STRINGS[S.lang]); if(s==null) s=k; if(vars) for(const v in vars) s=String(s).split("{"+v+"}").join(vars[v]); return s; };
 const nm=id=>T("ing."+id);
-/* spoon: solo visualizzazione. Mezzo spoon è il passo minimo; niente decimali inutili ("2 spoon", "1,5 spoon"). */
-const spoonVal=g=>Math.round((+g||0)/SPOON_G*2)/2;
+/* tbsp: solo visualizzazione. Da 1 tbsp in su il passo è mezzo cucchiaio, sotto un quarto;
+   sotto 1/8 di cucchiaio (sale, spezie in dose minima) la quantità si legge "un pizzico". */
+function tbspG(id){ const it=ING&&ING[id]; if(/salt/.test(id||"")) return TBSP_SALT_G; return (it&&TBSP_G[it.cls])||TBSP_DEFAULT_G; }
+function spoonVal(g,id){ const t=(+g||0)/tbspG(id); return t>=1?Math.round(t*2)/2:Math.round(t*4)/4; }
+function tbspStep(g,id){ return ((+g||0)/tbspG(id)>=1?0.5:0.25)*tbspG(id); }
+const FRAC={0.25:"¼",0.5:"½",0.75:"¾"};
+function tbspNum(v){ const w=Math.floor(v), f=Math.round((v-w)*4)/4; return f?((w?w+" ":"")+FRAC[f]):String(w); }
 const numFmt=v=>S.lang==="it"?String(v).replace(".",","):String(v);
-const spHTML=g=>{ const t=fmtSp(g).replace(" spoon",""); return `${esc(t.replace("< ","<"))}<small> spoon</small>`; };
-function fmtSp(g){ g=+g||0; if(g<=0) return "0 spoon"; const v=spoonVal(g); return (v===0?"< "+numFmt(0.5):numFmt(v))+" spoon"; }
+const spHTML=(g,id)=>{ const t=fmtSp(g,id); if(!/ tbsp$/.test(t)){ const m=t.match(/^(\d+) (.+)$/); return m?`${m[1]}<small> ${esc(m[2])}</small>`:`<small>${esc(t)}</small>`; } return `${esc(t.replace(" tbsp",""))}<small> tbsp</small>`; };
+const isPinch=(g,id)=>(+g||0)>0&&(+g||0)<tbspG(id)/8;
+function fmtSp(g,id){ g=+g||0; if(g<=0) return "0 tbsp"; if(isPinch(g,id)){ const n=Math.max(1,Math.round(g/PINCH_G)); return n===1?T("pinch"):T("pinches",{n}); } const v=Math.max(0.25,spoonVal(g,id)); return tbspNum(v)+" tbsp"; }
+/* passo delle regolazioni +/−: pizzico sotto 1/8 di tbsp, poi ¼ tbsp fino a 1, poi ½ tbsp */
+function nextG(g,id,dir){ const tg=tbspG(id); g=+g||0;
+ if(dir>0){ if(g+PINCH_G<tg/8) return Math.round((g+PINCH_G)/PINCH_G)*PINCH_G; const t=Math.max(0,spoonVal(g,id)); const nt=t<0.25?0.25:(t>=1?t+0.5:t+0.25); return nt*tg; }
+ if(isPinch(g,id)) return Math.max(0,Math.round((g-PINCH_G)/PINCH_G)*PINCH_G); const t=spoonVal(g,id); const nt=t>1?t-0.5:t-0.25; return nt>=0.25?nt*tg:Math.floor((tg/8-0.001)/PINCH_G)*PINCH_G; }
+const fmtG=g=>Math.round(+g||0)+" g";
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const prof=()=>S.profiles[S.profileKey]||S.profiles.main;
 const pName=p=>p.name||T("guest");
@@ -960,7 +976,7 @@ function buildLog(){
    intent_translation:"remote model (prototype tool; the thesis places it on the device)", proposal_rework:"remote model", why_recompute:"remote model", model_tier:MODEL_TIER},
   declared_timed_simulations:["bowl loading after Confirm: each ingredient waits for the participant's click; the scoop pour lasts "+POUR_MS+" ms (layers without scoop under prefers-reduced-motion)","preparation sequence faces 5-6-7 after the participant closes the lid"], face_animation_note:"Each face loops its own animation while visible; which face is shown depends only on state (see faceFor). Face 4 is governed by S.activeFormulation: \"proposed\" (proposal found, screen 6.1) or \"loading\" (powders entering the bowl).",
   input_channel:"conversation card under the device simulating the spoken dialogue: every machine phrase is a chat message posted in the same render as the face change (chat_message.face_shown); the participant types their spoken replies",
-  units_note:"Quantities are shown in spoon (1 spoon = "+SPOON_G+" g, half-spoon steps). Calculation and log values stay in grams; spoon labels are added where they were shown.",
+  units_note:"Quantities are shown in tablespoons (tbsp, about 15 ml). Grams per level tbsp depend on the ingredient class (project values: "+JSON.stringify(TBSP_G)+", salt "+TBSP_SALT_G+"). Half-tbsp steps from 1 tbsp up, quarter steps below, pinches of "+PINCH_G+" g under 1/8 tbsp. Calculation and log values stay in grams; tbsp labels are added where they were shown.",
   data_status:"Table of 200 plant powders and flavours. Only the three protein classes and their thresholds come from section 3.3; every other class, every value per 100 g, inclusion limits, sensory notes, allergen assignment and process rules are project values, not source data.",
   privacy_note:LOG_FULL_PROFILE?"Test mode: full profile data is exported (interviewees use fictitious data).":"Age, weight, allergies, intolerances and diet-related conditions are used in the session only; this log records whether each field was filled, never its content.",
   profiles:Object.fromEntries(Object.values(S.profiles).map(p=>[p.key,profileForLog(p)])),
@@ -980,7 +996,7 @@ function buildLog(){
    panel_toggles: ev.filter(e=>e.type==="panel_toggle").map(e=>({open:e.open, at:e.t})),
    edge_cases: ev.filter(e=>e.type==="edge_case").map(e=>({phase:e.phase, behaviour:e.behaviour, reason:e.reason, input:e.input, consecutive:e.consecutive, response:e.response})),
    chat_messages:{machine:ev.filter(e=>e.type==="chat_message"&&e.who==="m").length, participant:ev.filter(e=>e.type==="chat_message"&&e.who==="u").length},
-   bowl_loading: ev.filter(e=>e.type==="powder_loaded").map(e=>({order:e.order, ingredient:e.ingredient, spoon:e.spoon_label, grams:e.grams, message_at:e.prompted_at, click_at:e.t, wait_ms:e.wait_ms})),
+   bowl_loading: ev.filter(e=>e.type==="powder_loaded").map(e=>({order:e.order, ingredient:e.ingredient, tbsp:e.tbsp_label, grams:e.grams, message_at:e.prompted_at, click_at:e.t, wait_ms:e.wait_ms})),
    pod_shown: ev.filter(e=>e.type==="pod_shown").map(e=>({variant:e.variant, crop:e.crop, at:e.t, cycle:e.cycle})),
    cycles: 1+ev.filter(e=>e.type==="cycle_continue").length,
    close_requested_at: ev.filter(e=>e.type==="close_requested").map(e=>e.t), lid_closed_at: ev.filter(e=>e.type==="lid_closed").map(e=>e.t),
@@ -1044,7 +1060,7 @@ function violations(items,p){
  for(const it of live){ const r=excludedBy(it.id,p); if(r) v.push({key:"allergen:"+it.id, rule:"allergen", ids:[it.id], text:T("g.allergen",{i:nm(it.id)})}); }
  if(full && live.reduce((a,it)=>a+ING[it.id].max,0)<100) v.push({key:"single", rule:"single", ids:[], text:T("g.single")});
  else if(full) for(const it of live){ const i=ING[it.id]; if(it.g/M > i.max/100+0.005) v.push({key:"incl:"+it.id, rule:"incl", ids:[it.id], text:T("g.incl",{i:nm(it.id),m:i.max})}); }
- if(M>RULES.massMax) v.push({key:"mass", rule:"mass", ids:[], text:T("g.mass",{max:fmtSp(RULES.massMax)})});
+ if(M>RULES.massMax) v.push({key:"mass", rule:"mass", ids:[], text:T("g.mass",{max:fmtG(RULES.massMax)})});
  const PR=p.rules||{};
  if(full && t.F/M>(PR.fatMaxFrac??RULES.fatMaxFrac)) v.push({key:"fat", rule:"fat", ids:live.filter(it=>ING[it.id].F>=9).map(it=>it.id), text:T("g.fat")});
  if(t.Fib>(PR.fiberMax??RULES.fiberMax)) v.push({key:"fiber", rule:"fiber", ids:live.filter(it=>ING[it.id].Fib>=15).map(it=>it.id), text:T("g.fiber")});
@@ -1390,14 +1406,14 @@ function trackViolations(source){
 function adjust(id,delta,via){
  const c=S.comp, x=c&&c.items.find(i=>i.id===id); if(!x||!delta) return;
  if(!c.editSnap||c.editSnap.id!==id){ commitEdit(true); c.editSnap={id, from:x.g, others:Object.fromEntries(c.items.map(i=>[i.id,i.g])), via}; }
- const st=SPOON_G/2; x.g=Math.max(0,Math.min(RULES.massMax,Math.round((x.g+delta*st)/st)*st)); c.locked.add(id); // passo: mezzo spoon c.blocked=null; c.reworkOff=false;
+ x.g=Math.max(0,Math.min(RULES.massMax,Math.round(nextG(x.g,id,delta)*10)/10)); c.locked.add(id); // passo: ½ tbsp, ¼ sotto il cucchiaio
  c.items=solve(c.items,tprof(),{fixed:c.locked, anchor:c.editSnap.others, anchorW:0.25});
  trackViolations("user_edit"); render();
 }
 function commitEdit(keepUi){
  const c=S.comp; if(c&&c.editSnap){ const s=c.editSnap, x=c.items.find(i=>i.id===s.id);
   if(x&&x.g!==s.from){ const reb=c.items.filter(i=>i.id!==s.id&&i.g!==s.others[i.id]).map(i=>({id:i.id,from:s.others[i.id],to:i.g}));
-   c.edits++; log("edit",{kind:x.g===0?"remove":(s.from===0?"restore":"grams"), ingredient:s.id, from:s.from, to:x.g, from_spoon:fmtSp(s.from), to_spoon:fmtSp(x.g), via:s.via, rebalanced:reb, comp_id:c.id, local_totals:roundT(totals(c.items))}); sayMissing(); }
+   c.edits++; log("edit",{kind:x.g===0?"remove":(s.from===0?"restore":"grams"), ingredient:s.id, from:s.from, to:x.g, from_tbsp:fmtSp(s.from,s.id), to_tbsp:fmtSp(x.g,s.id), via:s.via, rebalanced:reb, comp_id:c.id, local_totals:roundT(totals(c.items))}); sayMissing(); }
   c.editSnap=null; }
  if(!keepUi) S.ui.edit=null;
 }
@@ -1416,7 +1432,7 @@ function addIngredient(id,via){
 }
 function applyFix(v,via){ const c=S.comp, before=c.items.map(i=>({...i})); commitEdit(true); if(localFix(v)===false) return false; c.edits++; S.fixOffer=null;
  log("guardrail_fix_applied",{rule:v.rule, ids:v.ids, before, after:c.items, comp_id:c.id, via:via||"touch"}); sayMissing(); trackViolations("guardrail_fix"); render(); }
-function sayMissing(){ const c=S.comp, m=c?massOf(c.items):0; if(c&&m<RULES.massMin) say(T("missing",{q:fmtSp(RULES.massMin-m)})); }
+function sayMissing(){ const c=S.comp, m=c?massOf(c.items):0; if(c&&m<RULES.massMin) say(T("missing",{q:fmtG(RULES.massMin-m)})); }
 function canConfirm(){ const c=S.comp; return !!c && massOf(c.items)>=RULES.massMin && !curViol().length && !S.pending; }
 /* DOPO LA CONFERMA. La macchina si apre e a sinistra compare la ciotola; la macchina nomina in chat un
    ingrediente alla volta e aspetta il clic della persona; al clic il misurino versa e lo strato cresce.
@@ -1440,10 +1456,10 @@ function promptNext(){
  const L=S.load; if(!L||!S.session||S.session.ended) return;
  if(L.n>=L.order.length){ closeBowl(); return; }
  const it=L.order[L.n]; S.phase="load"; S.activeFormulation="loading"; L.waiting=true; L.promptAt=Date.now(); waitClick();
- say(T("loadAsk",{i:nm(it.id), q:fmtSp(it.g)}),{ingredient:it.id, click:true});
+ say(T("loadAsk",{i:nm(it.id), q:fmtSp(it.g,it.id)}),{ingredient:it.id, click:true});
  if(!reduceMotion.matches) enterScoop();
  render();
- log("powder_prompted",{order:L.n+1, of:L.order.length, ingredient:it.id, grams:it.g, spoon_label:fmtSp(it.g)});
+ log("powder_prompted",{order:L.n+1, of:L.order.length, ingredient:it.id, grams:it.g, tbsp_label:fmtSp(it.g,it.id)});
 }
 function pourCurrent(){
  const L=S.load; if(!L||!L.waiting) return; L.waiting=false;
@@ -1451,7 +1467,7 @@ function pourCurrent(){
  addPowder(it.id,k,L.order.length,col,motion);
  if(motion) pourScoop(col);
  render();
- log("powder_loaded",{order:k+1, of:L.order.length, ingredient:it.id, grams:it.g, spoon:spoonVal(it.g), spoon_label:fmtSp(it.g), color:col, prompted_at:new Date(L.promptAt).toISOString(), wait_ms:Date.now()-L.promptAt, via:"click"});
+ log("powder_loaded",{order:k+1, of:L.order.length, ingredient:it.id, grams:it.g, tbsp:spoonVal(it.g,it.id), tbsp_label:fmtSp(it.g,it.id), color:col, prompted_at:new Date(L.promptAt).toISOString(), wait_ms:Date.now()-L.promptAt, via:"click"});
  later(motion?POUR_MS:450, promptNext);
 }
 /* Finito il caricamento la ciotola resta e il device resta di lato: la macchina chiede di essere richiusa e aspetta. */
@@ -2084,8 +2100,8 @@ function composeView(){
   const html=rows.map((r,i)=>{
    if(r.add) return `<button class="wr add" data-row="${i}" type="button" aria-label="+">+</button>`;
    const ed=S.ui.edit===r.id, cls=["wr", ed?"ed":"", r.g===0?"zero":"", flagged.has(r.id)?"flag":""].join(" ");
-   if(ed) return `<div class="${cls}" data-row="${i}"><button class="pm" data-pm="-1" type="button" aria-label="-${numFmt(0.5)} spoon">−</button><span class="n" style="padding-left:1.4cqw">${esc(nm(r.id))}</span><span class="g">${spHTML(r.g)}</span><button class="pm" data-pm="1" type="button" aria-label="+${numFmt(0.5)} spoon">+</button></div>`;
-   return `<button class="${cls}" data-row="${i}" type="button"><span class="n">${esc(nm(r.id))}</span><span class="g">${spHTML(r.g)}</span></button>`; }).join("");
+   if(ed) return `<div class="${cls}" data-row="${i}"><button class="pm" data-pm="-1" type="button" aria-label="-½ tbsp">−</button><span class="n" style="padding-left:1.4cqw">${esc(nm(r.id))}</span><span class="g">${spHTML(r.g,r.id)}</span><button class="pm" data-pm="1" type="button" aria-label="+½ tbsp">+</button></div>`;
+   return `<button class="${cls}" data-row="${i}" type="button"><span class="n">${esc(nm(r.id))}</span><span class="g">${spHTML(r.g,r.id)}</span></button>`; }).join("");
   return {key:"c1", html:`<div class="wl scroll" data-keep="wl">${html}</div>${footHTML()}`};
  }
  const t=totals(c.items);
