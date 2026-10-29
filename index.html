@@ -299,7 +299,7 @@ details summary{cursor:pointer;font-size:13.5px}
 
 <script>
 /* =====================================================================
-   HandPod, prototipo navigabile, versione 15.5.
+   HandPod, prototipo navigabile, versione 16.
    Divisione del lavoro come nella Tabella 6.2 della tesi:
    LOCALE (in questa pagina, nessuna rete): calcolo nutrizionale e ribilanciamento,
    vincoli di sicurezza, profili e loro creazione (incluso il riconoscimento delle
@@ -350,35 +350,35 @@ const STRINGS = {
   hello:"Ciao", deepIntro:"Chiaro.", deepFallback:"C'è qualcosa che invece non mangeresti mai?", askMerenda:"E a merenda, cosa ti va di solito?",
   confirmQ:"Ho capito bene?", askCorrect:"Cosa devo correggere?", sumLead:"Ecco cosa ho capito:",
   mixing:"Sto mescolando", pressing:"Sto pressando", ready:"È pronto, prendi la tua Pod!",
-  pickOffline:"Tocca per comporre", tellMore:"Dimmi di più", errRate:"Riprova fra poco", errRefused:"Dillo in altro modo", errGeneric:"Non ci sono riuscito",
+  pickOffline:"Tocca per comporre", netQ:"Non riesco a collegarmi a internet, ma posso comunque aiutarti a creare la tua Pod. Vuoi continuare?", netBack:"D'accordo, torno a riposo.", helpQ:"Vuoi una mano per creare la Pod?", helpNo:"Va bene, scegli tu gli ingredienti: tocca + per aggiungerli.", guideIntro:"Ti guido passo per passo. Se vuoi saltare un passaggio dimmi «salta», se vuoi fare da solo dimmi «basta».", guideEnd:"Ecco la base della tua Pod. Controlla le quantità con − e +, poi conferma.", guideStop:"Va bene, continua tu.", guideSkip:"Saltiamo questo passaggio.", tellMore:"Dimmi di più", errRate:"Riprova fra poco", errRefused:"Dillo in altro modo", errGeneric:"Non ci sono riuscito",
   kcal:"kcal", of:"su {x}", protein:"proteine", carbs:"carboidrati", fat:"grassi",
   missing:"Mancano {q}", recalculated:"Quantità ricalcolate qui", allergyNote:"Senza {x}: è escluso dal tuo profilo", blockedAlt:"{i}: è escluso dal tuo profilo. Al suo posto puoi usare {a}.", blockedNoAlt:"{i}: è escluso dal tuo profilo.",
   clickNote:"(click per procedere)", notU:"Scusa, non ho capito, puoi ripetere?", failMsg:"Non sono riuscito a elaborare la richiesta. Riprova tra un momento.",
   askSlot:"Prima di procedere, una cosa sola: {s} come ti piace mangiare?",
   slots:{colazione:"colazione",pranzo:"pranzo",merenda:"merenda",cena:"cena",spuntino:"spuntino"}, slotsAt:{colazione:"a colazione",pranzo:"a pranzo",merenda:"a merenda",cena:"a cena",spuntino:"per lo spuntino"},
   pSlot:"Fascia di consumo", slotAuto:"Automatica dall'ora (ora: {s})", slotReal:"reale", slotForced:"forzata", slotNote:"Strumento del prototipo, non funzione del prodotto: serve a mostrare una fascia diversa da quella dell'ora.",
-  reask:{decide:"Dimmi «confermo» per preparare questo piatto, oppure cosa vuoi cambiare, per esempio «più saporito».", create_clarify:"Rispondimi in poche parole su quel punto.", create_confirm:"Rispondi «sì» se è giusto, oppure dimmi cosa correggere.", create_correct:"Dimmi in poche parole cosa cambiare, per esempio «a cena mangio pesce».", create_name:"Dimmi solo il tuo nome, per esempio «Giulia».", create_mode:"Scegli una delle due: scrivi «completo» per un profilo dettagliato oppure «veloce» per partire subito.", create_age:"Scrivimi solo l'età in numero, per esempio «34».", create_weight:"Scrivimi solo il peso in chili, per esempio «68».", create_health:"Se non hai nulla scrivi «nessuna»; altrimenti nominale, per esempio «intolleranza al lattosio» oppure «celiachia».", create_diet:"Scrivi «nessuna» oppure il nome della dieta, per esempio «vegetariana».", create_refuse:"Scrivi «nessuno» oppure il nome dell'ingrediente, per esempio «coriandolo».", create_likes:"Dimmi una cosa che ti piace mangiare e quando, per esempio «dolce al mattino, salato a cena».", create_deep:"Rispondimi in poche parole: va bene anche solo «sì» o «no».", slot_taste:"{s} preferisci qualcosa di dolce o di salato? Per esempio «qualcosa di dolce e leggero».", listen:"Dimmi che cosa vuoi mangiare, per esempio «un pranzo con ceci e limone».", rework:"Dimmi una sola cosa da cambiare, per esempio «più saporito» oppure «senza zucca».", fix:"Vuoi che corregga io le quantità? Rispondi «sì» oppure «no»."},
+  reask:{net:"Dimmi «sì» per continuare anche senza internet, oppure «no» per tornare a riposo.", help:"Dimmi «sì» se vuoi che ti guidi, oppure «no» se preferisci scegliere da solo.", guide:"Dimmi «salta» per passare al prossimo passaggio, oppure «basta» per continuare da solo.", decide:"Dimmi «confermo» per preparare questo piatto, oppure cosa vuoi cambiare, per esempio «più saporito».", create_clarify:"Rispondimi in poche parole su quel punto.", create_confirm:"Rispondi «sì» se è giusto, oppure dimmi cosa correggere.", create_correct:"Dimmi in poche parole cosa cambiare, per esempio «a cena mangio pesce».", create_name:"Dimmi solo il tuo nome, per esempio «Giulia».", create_mode:"Scegli una delle due: scrivi «completo» per un profilo dettagliato oppure «veloce» per partire subito.", create_age:"Scrivimi solo l'età in numero, per esempio «34».", create_weight:"Scrivimi solo il peso in chili, per esempio «68».", create_health:"Se non hai nulla scrivi «nessuna»; altrimenti nominale, per esempio «intolleranza al lattosio» oppure «celiachia».", create_diet:"Scrivi «nessuna» oppure il nome della dieta, per esempio «vegetariana».", create_refuse:"Scrivi «nessuno» oppure il nome dell'ingrediente, per esempio «coriandolo».", create_likes:"Dimmi una cosa che ti piace mangiare e quando, per esempio «dolce al mattino, salato a cena».", create_deep:"Rispondimi in poche parole: va bene anche solo «sì» o «no».", slot_taste:"{s} preferisci qualcosa di dolce o di salato? Per esempio «qualcosa di dolce e leggero».", listen:"Dimmi che cosa vuoi mangiare, per esempio «un pranzo con ceci e limone».", rework:"Dimmi una sola cosa da cambiare, per esempio «più saporito» oppure «senza zucca».", fix:"Vuoi che corregga io le quantità? Rispondi «sì» oppure «no»."},
   reworkAsk:"Cosa cambio", decideQ:"Confermi o cambiamo qualcosa?", decideBlocked:"Prima va sistemato quello che vedi sullo schermo, poi posso confermare.", fixAsk:"Correggo io?", fixDone:"Fatto, ho ricalcolato le quantità", fixKept:"Va bene, lascio com'è",
   loadItem:"{q} di {i}", closeMe:"Richiudimi", who:{m:"HandPod",u:"Tu"}, chatEmpty:"Qui compare la conversazione con HandPod.",
   g:{allergen:"{i}: escluso dal profilo", incl:"{i}: massimo {m}%", mass:"Pod oltre {max}", fat:"Troppi grassi per compattare", salt:"Troppo sale per questo profilo", fibmin:"Poca fibra per la dieta del profilo", prot:"Troppe proteine per questo profilo", fiber:"Troppa fibra per pressare", pair:"Lino e trebbie: troppi insieme", iso:"Troppi isolati: si sbriciola", single:"Serve un altro ingrediente"},
   cls:{iso:"Isolati proteici",conc:"Concentrati proteici",flour:"Farine proteiche",cereal:"Cereali e amidi",veg:"Verdure",fruit:"Frutta",nut:"Frutta secca e semi",base:"Basi vegetali",analog:"Aromi di carne, pesce e formaggio",herb:"Erbe",spice:"Spezie",umami:"Condimenti",sweet:"Dolci, cacao e caffè",add:"Addensanti e additivi"},
   /* nomi e descrittori degli ingredienti: vedi ING_TEXT nella tabella dati */
   alg:{glutine:"glutine",soia:"soia",lupino:"lupino",guscio:"frutta a guscio",arachidi:"arachidi",sesamo:"sesamo",senape:"senape",sedano:"sedano"},
-  vLabel:{decide:"Voce simulata · risposta: confermi o cambiamo", listen:"Voce simulata · frase per il device", create_name:"Voce simulata · risposta: nome", create_likes:"Voce simulata · risposta: gusti", create_deep:"Voce simulata · risposta: approfondimento", create_mode:"Voce simulata · risposta: completo o veloce", create_age:"Voce simulata · risposta: età (dato fittizio)", create_weight:"Voce simulata · risposta: peso (dato fittizio)", create_health:"Voce simulata · risposta: allergie, intolleranze, condizioni (dati fittizi)", create_diet:"Voce simulata · risposta: dieta", create_refuse:"Voce simulata · risposta: ingredienti mai", create_clarify:"Voce simulata · risposta: chiarimento", create_confirm:"Voce simulata · risposta: conferma o correzione", create_correct:"Voce simulata · risposta: correzione", slot_taste:"Voce simulata · risposta: gusti di questa fascia", create_allergies:"Voce simulata · risposta: allergie", rework:"Voce simulata · cosa vuoi cambiare", fix:"Voce simulata · risposta: correggo?", idle:"Voce simulata · conversazione con HandPod"},
+  vLabel:{net:"Voce simulata · risposta: continuare senza rete", help:"Voce simulata · risposta: vuoi una mano", guide:"Voce simulata · guida alla Pod", decide:"Voce simulata · risposta: confermi o cambiamo", listen:"Voce simulata · frase per il device", create_name:"Voce simulata · risposta: nome", create_likes:"Voce simulata · risposta: gusti", create_deep:"Voce simulata · risposta: approfondimento", create_mode:"Voce simulata · risposta: completo o veloce", create_age:"Voce simulata · risposta: età (dato fittizio)", create_weight:"Voce simulata · risposta: peso (dato fittizio)", create_health:"Voce simulata · risposta: allergie, intolleranze, condizioni (dati fittizi)", create_diet:"Voce simulata · risposta: dieta", create_refuse:"Voce simulata · risposta: ingredienti mai", create_clarify:"Voce simulata · risposta: chiarimento", create_confirm:"Voce simulata · risposta: conferma o correzione", create_correct:"Voce simulata · risposta: correzione", slot_taste:"Voce simulata · risposta: gusti di questa fascia", create_allergies:"Voce simulata · risposta: allergie", rework:"Voce simulata · cosa vuoi cambiare", fix:"Voce simulata · risposta: correggo?", idle:"Voce simulata · conversazione con HandPod"},
   vSend:"Invia", vPh:"Es. qualcosa che mi tenga su fino a pranzo, con la nota di nocciola",
-  vHint:{decide:"«Sì» o «confermo» equivale a Conferma; «no», «cambiamo» o una richiesta («più saporito») equivale a Rielabora.", click:"Clicca in un punto qualsiasi dello schermo per proseguire.", sens:"Dato fittizio: usato nella sessione e incluso nel log esportato (modalità test).", on:"La frase va al modello remoto; la proposta viene poi verificata in questa pagina.", create:"La risposta resta in questa pagina.", off:"Senza rete la comprensione delle frasi non è disponibile: si compone toccando lo schermo.", wait:"Collegamento al modello in corso…", na:"Modello non disponibile in questa vista: si compone toccando lo schermo.", idle:"Il campo si attiva quando il device aspetta una risposta.", rework:"La nuova indicazione rivede la proposta attuale, non ne chiede una da zero. Tocca lo schermo per annullare.", reworkOff:"Senza rete la richiesta non può essere riformulata a parole; la composizione resta modificabile ingrediente per ingrediente sullo schermo.", fix:"Rispondi «sì» e la correzione la fa il calcolo locale (funziona anche senza rete); altrimenti modifica tu gli ingredienti.", close:"Clicca in un punto qualsiasi dello schermo per richiudere il coperchio.", likesOn:"La risposta entra nel profilo; la domanda che segue la formula il modello remoto.", slot:"La risposta completa il profilo per questa fascia; poi la richiesta prosegue."},
+  vHint:{net:"Rispondi «sì» per continuare senza rete, «no» per tornare a riposo.", help:"«Sì»: la macchina ti guida passo per passo. «No»: scegli tu gli ingredienti. Funziona senza rete.", guide:"Guida senza rete: «salta» passa al prossimo passaggio, «basta» chiude la guida.", decide:"«Sì» o «confermo» equivale a Conferma; «no», «cambiamo» o una richiesta («più saporito») equivale a Rielabora.", click:"Clicca in un punto qualsiasi dello schermo per proseguire.", sens:"Dato fittizio: usato nella sessione e incluso nel log esportato (modalità test).", on:"La frase va al modello remoto; la proposta viene poi verificata in questa pagina.", create:"La risposta resta in questa pagina.", off:"Senza rete la comprensione delle frasi non è disponibile: si compone toccando lo schermo.", wait:"Collegamento al modello in corso…", na:"Modello non disponibile in questa vista: si compone toccando lo schermo.", idle:"Il campo si attiva quando il device aspetta una risposta.", rework:"La nuova indicazione rivede la proposta attuale, non ne chiede una da zero. Tocca lo schermo per annullare.", reworkOff:"Senza rete la richiesta non può essere riformulata a parole; la composizione resta modificabile ingrediente per ingrediente sullo schermo.", fix:"Rispondi «sì» e la correzione la fa il calcolo locale (funziona anche senza rete); altrimenti modifica tu gli ingredienti.", close:"Clicca in un punto qualsiasi dello schermo per richiudere il coperchio.", likesOn:"La risposta entra nel profilo; la domanda che segue la formula il modello remoto.", slot:"La risposta completa il profilo per questa fascia; poi la richiesta prosegue."},
   pSession:"Sessione", pPid:"Partecipante", pScenario:"Scenario", pStart:"Inizio", pEvents:"Eventi", pPhase:"Fase",
   pTog:"Pannello del ricercatore", pImport:"Importa sessione", pImportHint:"Carica un log JSON esportato: riprende lo stesso partecipante, i profili e la conversazione, e riparte dal riposo per una nuova Pod. Se c'è una sessione aperta, esportala prima.", pImportOk:"Sessione ripresa: {p}", pImportErr:"File non valido: serve un log JSON esportato da questo prototipo.", pImportPartial:"Alcuni profili erano nel log senza la scheda completa: sono stati ripresi solo nome e valori di base.", setupImport:"Riprendi una sessione da file JSON", resumed:"Sessione ripresa da file",
   pApi:"Modello (versione sito)", apiProv:"Servizio", apiKey:"Chiave API", apiTest:"Prova", apiTesting:"Prova in corso…", apiOk:"Collegamento riuscito: il modello risponde.", apiOdd:"Il modello risponde, ma non nel formato atteso: prova un altro modello.", apiNet:"Il servizio non risponde da questa pagina (rete o blocco del browser).", apiLimit:"Limite gratuito raggiunto: riprova più tardi o domani.", apiModel:"Modello non trovato: controlla il nome del modello.", apiCredit:"Credito esaurito sul servizio.", apiHttp:"Il servizio ha risposto con un errore ({n}).", apiQuick:"Modello rapido", apiDef:"Modello bilanciato", apiSave:"Salva", apiForget:"Dimentica la chiave", apiSaved:"Chiave salvata in questo browser (…{k}).", apiNone:"Nessuna chiave: la traduzione delle frasi è spenta, si compone toccando lo schermo.", apiNote:"La chiave resta solo in questo browser: non entra nel log né nei file del sito. Usala solo su un computer tuo.", apiBad:"La chiave non è stata accettata: controllala.",
   pContinue:"Continua con lo stesso partecipante", pContinueHint:"I profili restano salvati e la macchina torna al riposo per una nuova Pod. Il log resta uno solo.", pExport:"Esporta log (JSON)", pCopy:"Copia JSON", pCopied:"Copiato", pEnd:"Termina sessione", pEnded:"Sessione terminata", pNew:"Nuova sessione", pRest:"Torna al riposo", pCancel:"Annulla richiesta",
   pExportNA:"Esportazione non disponibile in questa vista", pExportWait:"Esportazione in preparazione…", pSaved:"Log salvato", pDeclined:"Salvataggio annullato", pExportErr:"Salvataggio non riuscito",
   pNet:"Rete", netOn:"Connessa", netOff:"Scollegata", keep:"Continua", lose:"Si perde",
-  keepList:"Calcolo e ribilanciamento · Vincoli · Profili e creazione profilo · Riassunto del profilo (versione locale) · Fasce orarie · Composizione ingrediente per ingrediente · Caricamento e preparazione · Log", loseList:"Comprensione delle frasi · Rielaborazione a parole · Riga del perché dal modello · Riassunto e chiarimento del profilo dal modello · Correzioni della scheda lette dal modello",
+  keepList:"Calcolo e ribilanciamento · Vincoli · Profili e creazione profilo · Riassunto del profilo (versione locale) · Fasce orarie · Composizione ingrediente per ingrediente con la guida passo per passo · Database delle Pod del profilo · Caricamento e preparazione · Log", loseList:"Comprensione delle frasi · Rielaborazione a parole · Riga del perché dal modello · Riassunto e chiarimento del profilo dal modello · Correzioni della scheda lette dal modello",
   pArch:"Dove gira ogni funzione", archF:["Calcolo nutrizionale, ribilanciamento, quantità in tbsp","Vincoli di sicurezza: allergie, intolleranze, condizioni, dieta, ingredienti rifiutati, limiti di processo","Riga calma del vincolo con alternativa proposta","Domande della creazione profilo e lettura delle risposte (età, peso, salute, dieta, gusti per pasto)","Riconoscimento di allergie, intolleranze, condizioni e diete scritte","Controllo delle risposte e casi limite","Fascia di consumo, ora del saluto, energia per fascia","Livello espressivo: faccine, frasi in chat, annotazioni","Caricamento della ciotola, chiusura, preparazione simulata, Pod","Log, esportazione e importazione della sessione","Scelta fra profilo veloce e completo quando le regole locali non bastano","Traduzione intento → formulazione (e frasi fuori tema)","Rielaborazione della proposta","Riga del perché ricalcolata","Riassunto del profilo e domanda di chiarimento","Aggiornamento della scheda dopo chiarimento o correzione"],
   loc:"Locale", rem:"Remoto", active:"attivo", inactive:"non attivo",
   declare:"Le funzioni segnate Remoto usano un modello remoto: dentro Claude passano da Claude, sul sito dal servizio scelto nel pannello. Senza rete il riassunto del profilo e le correzioni della scheda passano alla versione locale; le altre funzioni remote si fermano e si compone toccando lo schermo. Nell'architettura proposta dalla tesi la traduzione sta a bordo, con il cloud solo come ripiego: il prototipo riproduce la divisione fra funzioni locali e remote, non l'inferenza a bordo.", offlineLocal:"senza rete: versione locale", viaClaude:"via Claude",
   pExpr:"Faccina e stato", noFace:"nessuna faccina su questa schermata", pSim:"Simulazioni a tempo dichiarate: caricamento della ciotola dopo Conferma, ingrediente per ingrediente al clic della persona, e sequenza 5-6 dopo la chiusura del coperchio (3,2 s per passo).",
-  pProfiles:"Profili", pActive:"attivo", pName:"Nome", pKcal:"kcal", pP:"Prot. %", pC:"Carb. %", pF:"Grassi %", pLikes:"Gusti", pAlg:"Allergie", pExcl:"Ingredienti esclusi", none:"nessuno", pAge:"Età", pWeight:"Peso", pIntol:"Intolleranze", pCond:"Condizioni che influenzano la dieta", pDiet:"Dieta", pRefused:"Ingredienti che non vuole mai (scelta, non restrizione)", pFollow:"Approfondimento", pMode:"Profilo", modeQuick:"veloce", modeFull:"completo", unfilled:"non compilato", noneF:"nessuna", years:"anni", kg:"kg", pRules:"Limiti attivi", alsoExcl:"anche", pSens:"Modalità test: il log esportato contiene la scheda completa. Usare dati fittizi.",
+  pProfiles:"Profili", pDb:"Database delle Pod", pDbEmpty:"nessuna Pod ancora", pDbMain:"principali", pDbNote:"Le prossime proposte per questo profilo evitano gli ingredienti principali delle ultime Pod.", pActive:"attivo", pName:"Nome", pKcal:"kcal", pP:"Prot. %", pC:"Carb. %", pF:"Grassi %", pLikes:"Gusti", pAlg:"Allergie", pExcl:"Ingredienti esclusi", none:"nessuno", pAge:"Età", pWeight:"Peso", pIntol:"Intolleranze", pCond:"Condizioni che influenzano la dieta", pDiet:"Dieta", pRefused:"Ingredienti che non vuole mai (scelta, non restrizione)", pFollow:"Approfondimento", pMode:"Profilo", modeQuick:"veloce", modeFull:"completo", unfilled:"non compilato", noneF:"nessuna", years:"anni", kg:"kg", pRules:"Limiti attivi", alsoExcl:"anche", pSens:"Modalità test: il log esportato contiene la scheda completa. Usare dati fittizi.",
   pTasteSlots:"Gusti per fascia", pTier:"Modello remoto", tierQuick:"Rapido (risposta in pochi secondi)", tierDefault:"Bilanciato (più accurato, più lento)",
   pLook:"Impostazioni", pCmf:"Scocca", cmf:{greige:"Grigio caldo",black:"Nero",ochre:"Ocra"}, pLang:"Lingua",
   setupTitle:"Prototipo <em>navigabile</em>", setupSub:"Inserisci l'identificativo del partecipante e avvia. La sessione resta in questo browser finché non esporti il log.",
@@ -403,35 +403,35 @@ const STRINGS = {
   hello:"Hi", deepIntro:"Got it.", deepFallback:"Is there anything you would never eat?", askMerenda:"And for an afternoon snack, what do you usually feel like?",
   confirmQ:"Did I get that right?", askCorrect:"What should I correct?", sumLead:"Here is what I understood:",
   mixing:"Mixing", pressing:"Pressing", ready:"It's ready, take your Pod!",
-  pickOffline:"Tap to compose", tellMore:"Tell me more", errRate:"Try again shortly", errRefused:"Say it differently", errGeneric:"That didn't work",
+  pickOffline:"Tap to compose", netQ:"I can't connect to the internet, but I can still help you make your Pod. Do you want to go on?", netBack:"All right, I'll go back to rest.", helpQ:"Would you like a hand making the Pod?", helpNo:"All right, you choose the ingredients: tap + to add them.", guideIntro:"I'll guide you step by step. Say «skip» to skip a step, or «stop» to carry on by yourself.", guideEnd:"That is the base of your Pod. Check the amounts with − and +, then confirm.", guideStop:"All right, carry on.", guideSkip:"Let's skip this step.", tellMore:"Tell me more", errRate:"Try again shortly", errRefused:"Say it differently", errGeneric:"That didn't work",
   kcal:"kcal", of:"of {x}", protein:"protein", carbs:"carbs", fat:"fat",
   missing:"{q} to go", recalculated:"Amounts recalculated here", allergyNote:"No {x}: it is excluded by your profile", blockedAlt:"{i}: excluded by your profile. You can use {a} instead.", blockedNoAlt:"{i}: excluded by your profile.",
   clickNote:"(click to continue)", notU:"Sorry, I didn't understand, can you say it again?", failMsg:"I couldn't process the request. Please try again in a moment.",
   askSlot:"Before we go on, just one thing: what do you like to eat {s}?",
   slots:{colazione:"breakfast",pranzo:"lunch",merenda:"afternoon snack",cena:"dinner",spuntino:"late snack"}, slotsAt:{colazione:"at breakfast",pranzo:"at lunch",merenda:"for an afternoon snack",cena:"at dinner",spuntino:"for a late snack"},
   pSlot:"Eating moment", slotAuto:"Automatic from the clock (now: {s})", slotReal:"real", slotForced:"forced", slotNote:"Prototype tool, not a product feature: shows a moment different from the current time.",
-  reask:{decide:"Say «confirm» to prepare this dish, or tell me what to change, for example «tastier».", create_clarify:"Answer in a few words about that point.", create_confirm:"Say «yes» if it is right, or tell me what to correct.", create_correct:"Tell me briefly what to change, for example «I eat fish at dinner».", create_name:"Just tell me your name, for example «Julia».", create_mode:"Pick one of the two: write «full» for a detailed profile or «quick» to start right away.", create_age:"Just write your age as a number, for example «34».", create_weight:"Just write your weight in kilos, for example «68».", create_health:"If you have nothing write «none»; otherwise name it, for example «lactose intolerance» or «coeliac disease».", create_diet:"Write «none» or the name of the diet, for example «vegetarian».", create_refuse:"Write «none» or the name of the ingredient, for example «coriander».", create_likes:"Tell me one thing you like to eat and when, for example «sweet in the morning, savoury at dinner».", create_deep:"Answer in a few words: just «yes» or «no» is fine.", slot_taste:"{s}, do you prefer something sweet or savoury? For example «something sweet and light».", listen:"Tell me what you want to eat, for example «a lunch with chickpeas and lemon».", rework:"Tell me one thing to change, for example «tastier» or «without pumpkin».", fix:"Shall I fix the amounts? Answer «yes» or «no»."},
+  reask:{net:"Say «yes» to go on without the internet, or «no» to go back to rest.", help:"Say «yes» if you want me to guide you, or «no» to choose by yourself.", guide:"Say «skip» to move to the next step, or «stop» to carry on by yourself.", decide:"Say «confirm» to prepare this dish, or tell me what to change, for example «tastier».", create_clarify:"Answer in a few words about that point.", create_confirm:"Say «yes» if it is right, or tell me what to correct.", create_correct:"Tell me briefly what to change, for example «I eat fish at dinner».", create_name:"Just tell me your name, for example «Julia».", create_mode:"Pick one of the two: write «full» for a detailed profile or «quick» to start right away.", create_age:"Just write your age as a number, for example «34».", create_weight:"Just write your weight in kilos, for example «68».", create_health:"If you have nothing write «none»; otherwise name it, for example «lactose intolerance» or «coeliac disease».", create_diet:"Write «none» or the name of the diet, for example «vegetarian».", create_refuse:"Write «none» or the name of the ingredient, for example «coriander».", create_likes:"Tell me one thing you like to eat and when, for example «sweet in the morning, savoury at dinner».", create_deep:"Answer in a few words: just «yes» or «no» is fine.", slot_taste:"{s}, do you prefer something sweet or savoury? For example «something sweet and light».", listen:"Tell me what you want to eat, for example «a lunch with chickpeas and lemon».", rework:"Tell me one thing to change, for example «tastier» or «without pumpkin».", fix:"Shall I fix the amounts? Answer «yes» or «no»."},
   reworkAsk:"What should I change", decideQ:"Shall we confirm, or change something?", decideBlocked:"First we need to fix what you see on the screen, then I can confirm.", fixAsk:"Shall I fix it?", fixDone:"Done, I recalculated the amounts", fixKept:"All right, I'll leave it",
   loadItem:"{q} of {i}", closeMe:"Close me", who:{m:"HandPod",u:"You"}, chatEmpty:"The conversation with HandPod appears here.",
   g:{allergen:"{i}: excluded by profile", incl:"{i}: max {m}%", mass:"Pod over {max}", fat:"Too much fat to compact", salt:"Too much salt for this profile", fibmin:"Too little fibre for this profile's diet", prot:"Too much protein for this profile", fiber:"Too much fibre to press", pair:"Flax and spent grain: too much", iso:"Too many isolates: it crumbles", single:"Needs another ingredient"},
   cls:{iso:"Protein isolates",conc:"Protein concentrates",flour:"Protein flours",cereal:"Grains and starches",veg:"Vegetables",fruit:"Fruit",nut:"Nuts and seeds",base:"Plant bases",analog:"Meat, fish and cheese flavours",herb:"Herbs",spice:"Spices",umami:"Condiments",sweet:"Sweet, cocoa and coffee",add:"Thickeners and additives"},
   /* nomi e descrittori degli ingredienti: vedi ING_TEXT nella tabella dati */
   alg:{glutine:"gluten",soia:"soy",lupino:"lupin",guscio:"tree nuts",arachidi:"peanuts",sesamo:"sesame",senape:"mustard",sedano:"celery"},
-  vLabel:{decide:"Simulated voice · answer: confirm or change", listen:"Simulated voice · sentence for the device", create_name:"Simulated voice · answer: name", create_likes:"Simulated voice · answer: tastes", create_deep:"Simulated voice · answer: follow-up", create_mode:"Simulated voice · answer: full or quick", create_age:"Simulated voice · answer: age (fictitious)", create_weight:"Simulated voice · answer: weight (fictitious)", create_health:"Simulated voice · answer: allergies, intolerances, conditions (fictitious)", create_diet:"Simulated voice · answer: diet", create_refuse:"Simulated voice · answer: never-ingredients", create_clarify:"Simulated voice · answer: clarification", create_confirm:"Simulated voice · answer: confirm or correct", create_correct:"Simulated voice · answer: correction", slot_taste:"Simulated voice · answer: tastes for this moment", create_allergies:"Simulated voice · answer: allergies", rework:"Simulated voice · what to change", fix:"Simulated voice · answer: shall I fix it?", idle:"Simulated voice · conversation with HandPod"},
+  vLabel:{net:"Simulated voice · answer: go on without network", help:"Simulated voice · answer: want a hand", guide:"Simulated voice · Pod guide", decide:"Simulated voice · answer: confirm or change", listen:"Simulated voice · sentence for the device", create_name:"Simulated voice · answer: name", create_likes:"Simulated voice · answer: tastes", create_deep:"Simulated voice · answer: follow-up", create_mode:"Simulated voice · answer: full or quick", create_age:"Simulated voice · answer: age (fictitious)", create_weight:"Simulated voice · answer: weight (fictitious)", create_health:"Simulated voice · answer: allergies, intolerances, conditions (fictitious)", create_diet:"Simulated voice · answer: diet", create_refuse:"Simulated voice · answer: never-ingredients", create_clarify:"Simulated voice · answer: clarification", create_confirm:"Simulated voice · answer: confirm or correct", create_correct:"Simulated voice · answer: correction", slot_taste:"Simulated voice · answer: tastes for this moment", create_allergies:"Simulated voice · answer: allergies", rework:"Simulated voice · what to change", fix:"Simulated voice · answer: shall I fix it?", idle:"Simulated voice · conversation with HandPod"},
   vSend:"Send", vPh:"E.g. something to keep me going until lunch, with that hazelnut note",
-  vHint:{decide:"«Yes» or «confirm» works as Confirm; «no», «let's change» or a request («tastier») works as Rework.", click:"Click anywhere on the screen to go on.", sens:"Fictitious data: used in the session and included in the exported log (test mode).", on:"The sentence goes to the remote model; the proposal is then checked in this page.", create:"The answer stays in this page.", off:"Offline, sentence understanding is not available: compose by tapping the screen.", wait:"Connecting to the model…", na:"Model not available in this view: compose by tapping the screen.", idle:"The field turns on when the device is waiting for an answer.", rework:"The new instruction revises the current proposal; it does not ask for a fresh one. Tap the screen to cancel.", reworkOff:"Offline the request cannot be rephrased in words; the composition stays editable ingredient by ingredient on the screen.", fix:"Answer «yes» and the local calculation applies the fix (works offline too); otherwise edit the ingredients yourself.", close:"Click anywhere on the screen to close the lid.", likesOn:"The answer goes into the profile; the follow-up question is written by the remote model.", slot:"The answer completes the profile for this moment; then the request goes on."},
+  vHint:{net:"Answer «yes» to go on without network, «no» to go back to rest.", help:"«Yes»: the device guides you step by step. «No»: you choose the ingredients. Works offline.", guide:"Offline guide: «skip» moves to the next step, «stop» closes the guide.", decide:"«Yes» or «confirm» works as Confirm; «no», «let's change» or a request («tastier») works as Rework.", click:"Click anywhere on the screen to go on.", sens:"Fictitious data: used in the session and included in the exported log (test mode).", on:"The sentence goes to the remote model; the proposal is then checked in this page.", create:"The answer stays in this page.", off:"Offline, sentence understanding is not available: compose by tapping the screen.", wait:"Connecting to the model…", na:"Model not available in this view: compose by tapping the screen.", idle:"The field turns on when the device is waiting for an answer.", rework:"The new instruction revises the current proposal; it does not ask for a fresh one. Tap the screen to cancel.", reworkOff:"Offline the request cannot be rephrased in words; the composition stays editable ingredient by ingredient on the screen.", fix:"Answer «yes» and the local calculation applies the fix (works offline too); otherwise edit the ingredients yourself.", close:"Click anywhere on the screen to close the lid.", likesOn:"The answer goes into the profile; the follow-up question is written by the remote model.", slot:"The answer completes the profile for this moment; then the request goes on."},
   pSession:"Session", pPid:"Participant", pScenario:"Scenario", pStart:"Started", pEvents:"Events", pPhase:"Phase",
   pTog:"Researcher panel", pImport:"Import session", pImportHint:"Load an exported JSON log: it resumes the same participant, the profiles and the conversation, and starts again from rest for a new Pod. If a session is open, export it first.", pImportOk:"Session resumed: {p}", pImportErr:"Invalid file: a JSON log exported by this prototype is needed.", pImportPartial:"Some profiles were logged without the full card: only name and base values were restored.", setupImport:"Resume a session from a JSON file", resumed:"Session resumed from file",
   pApi:"Model (website version)", apiProv:"Service", apiKey:"API key", apiTest:"Test", apiTesting:"Testing…", apiOk:"Connected: the model answers.", apiOdd:"The model answers, but not in the expected format: try another model.", apiNet:"The service does not answer from this page (network or browser block).", apiLimit:"Free limit reached: try again later or tomorrow.", apiModel:"Model not found: check the model name.", apiCredit:"No credit left on the service.", apiHttp:"The service answered with an error ({n}).", apiQuick:"Quick model", apiDef:"Balanced model", apiSave:"Save", apiForget:"Forget the key", apiSaved:"Key saved in this browser (…{k}).", apiNone:"No key: sentence translation is off, compose by tapping the screen.", apiNote:"The key stays only in this browser: it never enters the log or the site files. Use it only on your own computer.", apiBad:"The key was not accepted: check it.",
   pContinue:"Continue with the same participant", pContinueHint:"Profiles stay saved and the machine goes back to rest for a new Pod. The log stays a single file.", pExport:"Export log (JSON)", pCopy:"Copy JSON", pCopied:"Copied", pEnd:"End session", pEnded:"Session ended", pNew:"New session", pRest:"Back to rest", pCancel:"Cancel request",
   pExportNA:"Export not available in this view", pExportWait:"Preparing export…", pSaved:"Log saved", pDeclined:"Save cancelled", pExportErr:"Save failed",
   pNet:"Network", netOn:"Connected", netOff:"Disconnected", keep:"Keeps working", lose:"Lost",
-  keepList:"Calculation and rebalancing · Constraints · Profiles and profile creation · Profile summary (local version) · Eating moments · Composing ingredient by ingredient · Loading and preparation · Log", loseList:"Sentence understanding · Rework in words · The model's why line · Profile summary and clarification from the model · Card corrections read by the model",
+  keepList:"Calculation and rebalancing · Constraints · Profiles and profile creation · Profile summary (local version) · Eating moments · Composing ingredient by ingredient with the step-by-step guide · Profile Pod database · Loading and preparation · Log", loseList:"Sentence understanding · Rework in words · The model's why line · Profile summary and clarification from the model · Card corrections read by the model",
   pArch:"Where each function runs", archF:["Nutritional calculation, rebalancing, tbsp amounts","Safety constraints: allergies, intolerances, conditions, diet, refused ingredients, process limits","Calm constraint line with a proposed alternative","Profile creation questions and reading the answers (age, weight, health, diet, tastes by meal)","Recognising typed allergies, intolerances, conditions and diets","Answer checks and edge cases","Eating moment, greeting time, energy by moment","Expressive layer: faces, chat phrases, annotations","Bowl loading, closing, simulated preparation, Pod","Log, session export and import","Full or quick profile choice when local rules are not enough","Intent → formulation translation (and off-topic phrases)","Proposal rework","Recomputed why line","Profile summary and clarifying question","Card update after a clarification or correction"],
   loc:"Local", rem:"Remote", active:"active", inactive:"inactive",
   declare:"Functions marked Remote use a remote model: inside Claude through Claude, on the website through the service chosen in the panel. Offline, the profile summary and card corrections switch to the local version; the other remote functions stop and composing happens by tapping the screen. In the architecture the thesis proposes, translation runs on the device, with the cloud only as a fallback: the prototype reproduces the split between local and remote functions, not on-device inference.", offlineLocal:"offline: local version", viaClaude:"via Claude",
   pExpr:"Face and state", noFace:"no face on this screen", pSim:"Declared timed simulations: loading the bowl after Confirm, one ingredient per participant click, and sequence 5-6 after the lid is closed (3.2 s per step).",
-  pProfiles:"Profiles", pActive:"active", pName:"Name", pKcal:"kcal", pP:"Prot. %", pC:"Carb. %", pF:"Fat %", pLikes:"Tastes", pAlg:"Allergies", pExcl:"Excluded ingredients", none:"none", pAge:"Age", pWeight:"Weight", pIntol:"Intolerances", pCond:"Conditions affecting diet", pDiet:"Diet", pRefused:"Never-ingredients (a choice, not a restriction)", pFollow:"Follow-up", pMode:"Profile", modeQuick:"quick", modeFull:"full", unfilled:"not filled in", noneF:"none", years:"years", kg:"kg", pRules:"Active limits", alsoExcl:"also", pSens:"Test mode: the exported log contains the full profile. Use fictitious data.",
+  pProfiles:"Profiles", pDb:"Pod database", pDbEmpty:"no Pods yet", pDbMain:"main", pDbNote:"The next proposals for this profile avoid the main ingredients of the latest Pods.", pActive:"active", pName:"Name", pKcal:"kcal", pP:"Prot. %", pC:"Carb. %", pF:"Fat %", pLikes:"Tastes", pAlg:"Allergies", pExcl:"Excluded ingredients", none:"none", pAge:"Age", pWeight:"Weight", pIntol:"Intolerances", pCond:"Conditions affecting diet", pDiet:"Diet", pRefused:"Never-ingredients (a choice, not a restriction)", pFollow:"Follow-up", pMode:"Profile", modeQuick:"quick", modeFull:"full", unfilled:"not filled in", noneF:"none", years:"years", kg:"kg", pRules:"Active limits", alsoExcl:"also", pSens:"Test mode: the exported log contains the full profile. Use fictitious data.",
   pTasteSlots:"Tastes by moment", pTier:"Remote model", tierQuick:"Quick (answers in a few seconds)", tierDefault:"Balanced (more accurate, slower)",
   pLook:"Settings", pCmf:"Shell", cmf:{greige:"Warm grey",black:"Black",ochre:"Ochre"}, pLang:"Language",
   setupTitle:"Navigable <em>prototype</em>", setupSub:"Enter the participant identifier and start. The session stays in this browser until you export the log.",
@@ -853,7 +853,7 @@ function deriveConstraints(p){
  return p;
 }
 /* scheda: null = non compilato (domanda non posta), [] o "" = compilato e vuoto */
-function newProfile(o){ const p={kcal:600,p:25,c:50,f:25,likes:"",tasteQ:"",tasteA:"",tastes:Object.fromEntries(SLOTS.map(k=>[k,null])),tastesAsked:{},mode:null,age:null,weight:null,health:{allergies:null,intolerances:null,conditions:null,extraIds:[]},diet:null,refused:null,...o};
+function newProfile(o){ const p={kcal:600,p:25,c:50,f:25,likes:"",tasteQ:"",tasteA:"",tastes:Object.fromEntries(SLOTS.map(k=>[k,null])),tastesAsked:{},mode:null,age:null,weight:null,health:{allergies:null,intolerances:null,conditions:null,extraIds:[]},diet:null,refused:null,pods:[],...o};
  p.base={p:p.p,c:p.c,f:p.f}; return deriveConstraints(p); }
 /* PROFILI BASE: dati fittizi di progetto, compilati per intero (percorso completo) così da mettere alla prova
    vincoli, fasce e scheda. A Marco manca di proposito lo spuntino, per mostrare il completamento del profilo. */
@@ -1167,7 +1167,7 @@ function allergyBlock(p){
 }
 function rulesLine(p){ const r=p.rules||{}; return `fat at most ${Math.round((r.fatMaxFrac??RULES.fatMaxFrac)*100)}% of mass; fibre at most ${r.fiberMax??RULES.fiberMax} g; isolates together at most 50% of mass${r.saltyMaxG!=null?`; salt and salty condiments together at most ${r.saltyMaxG} g`:""}${r.pPctMax!=null?`; protein at most ${r.pPctMax}% of energy`:""}${r.cPctMax!=null?`; carbohydrate at most ${r.cPctMax}% of energy`:""}`; }
 /* tabella compatta per il modello: una riga per ingrediente (id | nome | classe | P/C/F/fibre per 100 g | max % | note) */
-function ingLines(p){ return INGREDIENTS.filter(i=>!excludedBy(i.id,p)).map(i=>`${i.id} | ${nm(i.id)} | ${i.cls} | ${i.P}/${i.C}/${i.F}/${i.Fib} | max ${i.max}% | ${T("sens."+i.id)}`).join("\n"); }
+function ingLines(p){ return INGREDIENTS.filter(i=>!excludedBy(i.id,p)&&!(S.histAvoid&&S.histAvoid.has(i.id))).map(i=>`${i.id} | ${nm(i.id)} | ${i.cls} | ${i.P}/${i.C}/${i.F}/${i.Fib} | max ${i.max}% | ${T("sens."+i.id)}`).join("\n"); }
 function ingTable(p){ return INGREDIENTS.filter(i=>!excludedBy(i.id,p)).map(i=>({id:i.id,name:nm(i.id),class:i.cls,per100g:{protein:i.P,carbs:i.C,fat:i.F,fibre:i.Fib,kcal:i.kcal},max_inclusion_pct:i.max,sensory:T("sens."+i.id)})); }
 const tasteLine=p=>`${(p.tasteQ&&p.tasteA)?` Asked «${p.tasteQ}», they said: «${p.tasteA}».`:""}${p.age!=null?` Age: ${p.age}.`:""}${p.weight!=null?` Weight: ${p.weight} kg.`:""}`;
 function translatePrompt(phrase,p){
@@ -1184,7 +1184,7 @@ Read the request closely and let it drive every choice:
 - foods or dishes they name (chicken, potatoes, sour cream, tomato, chocolate, berries...): HandPod has no fresh food, so rebuild each named food with the closest powders in the list: a matching base and/or flavour for every food named (e.g. roast chicken flavour plus a protein base for chicken, potato flakes for potatoes, plant sour cream powder for sour cream). Do not drop any named food if something in the list can stand for it.
 THE TITLE is the name of the finished dish, as a chef would write it on a menu: short, definite, 2 to 4 words, in the person's language. Rework the request into a dish; do not repeat the request or describe it. Examples of the style (not answers to reuse): «una cena calda con i funghi» → «Risotto ai porcini»; «qualcosa di fresco e leggero per l'estate» → «Insalata di farro al limone»; «colazione dolce che sappia di nocciola» → «Porridge alla nocciola»; «manzo e verdure, stile orientale» → «Manzo saltato allo zenzero». Never use words like pranzo, cena, colazione, leggero, energetico, proteico, Pod, mix, bowl of; nothing exaggerated. Two different requests must give clearly different dishes. Use the profile below only as background and where the request leaves room.
 
-${allergyBlock(p)}
+${allergyBlock(p)}${histLine()}
 Profile: ${pName(p)}. Likes: ${p.likes||"not stated"}.${tasteLine(p)} Target energy for this moment ${slotKcal(p)} kcal, split protein ${p.p}% / carbohydrate ${p.c}% / fat ${p.f}%. Pod mass ${RULES.massMin}-${RULES.massMax} g.
 Device rules: each ingredient at most max_inclusion_pct of Pod mass; ${rulesLine(p)}. Only the ingredients listed below are allowed (the others are excluded for this person). A local calculation on the device checks amounts and limits afterwards.
 
@@ -1231,7 +1231,7 @@ async function askProposal(prompt,signal,fn){
 }
 async function sendPhrase(phrase){
  phrase=String(phrase||"").trim(); if(!phrase||!remoteReady()||S.pending) return;
- S.line=null; log("utterance_sent",{text:phrase, channel:"typed (simulated voice)"});
+ S.line=null; S.histAvoid=histAvoid(prof(),phrase); log("utterance_sent",{text:phrase, channel:"typed (simulated voice)", avoided_from_db:[...S.histAvoid]});
  S.pending="translate"; S.pendSeq++; S.phase="think"; const ctl=new AbortController(); S.ctl=ctl; render();
  log("model_request",{fn:"translate", location:"remote", model_tier:MODEL_TIER_UI, slot_real:slotInfo().real, slot_used:slotInfo().used, slot_forced:slotInfo().forced});
  let r, raw;
@@ -1244,6 +1244,7 @@ async function sendPhrase(phrase){
  if(r.understood===false){ S.phase="listen"; S.line=null; notUnderstood("listen","model_off_topic",phrase); return; }
  if(!raw.length){ S.phase="listen"; S.line=T("failMsg"); edgeCase("listen","failure","malformed_or_empty",phrase,{fn:"translate"}); render(); return; }
  understood(); const tg=clampTargets(r.targets,prof());
+{ const rep=raw.filter(x=>S.histAvoid&&S.histAvoid.has(x.id)).map(x=>x.id); if(rep.length){ raw=raw.filter(x=>!rep.includes(x.id)); log("guardrail_fired",{rule:"db_repeat", ids:rep, action:"removed", source:"model"}); } }
  const v=verifyProposal(raw,{...prof(),...tg});
  log("local_verification",{corrections:v.corrections, guardrails:v.guards, local_totals:roundT(totals(v.items)), targets_model:r.targets||null, targets_used:tg});
  v.guards.forEach(g=>log("guardrail_fired",{rule:g.rule, ids:g.ids, action:g.action, source:"model_proposal"}));
@@ -1309,7 +1310,7 @@ Composition now on screen (after the device's check and the person's changes): $
 NEW INSTRUCTION from the person: «${text}»
 If the new instruction is not about this dish or food at all, or it is nonsense, or written in a language other than Italian or English, reply only {"understood":false}.
 
-${allergyBlock(p)}
+${allergyBlock(p)}${histLine()}
 Profile: ${pName(p)}. What they like: ${p.likes||"not stated"}.${tasteLine(p)} Energy target ${p.kcal} kcal; split protein ${p.p}%, carbohydrate ${p.c}%, fat ${p.f}%. Pod mass ${RULES.massMin}-${RULES.massMax} g.
 Device rules: each ingredient at most max_inclusion_pct of Pod mass; ${rulesLine(p)}.
 Ingredients available (id | name | class | protein/carbs/fat/fibre g per 100 g | max inclusion | sensory notes):
@@ -1340,7 +1341,7 @@ async function sendRework(text){
  S.pending="rework"; S.pendSeq++; S.line=null; const ctl=new AbortController(); S.ctl=ctl; render();
  log("model_request",{fn:"rework", location:"remote", model_tier:MODEL_TIER_UI, n:rw.n});
  let r, raw;
- try{ ({r,raw}=await askProposal(reworkPrompt(c,text,prof()),ctl.signal,"rework")); }
+ S.histAvoid=histAvoid(prof(),(c.phrase||"")+" "+text); try{ ({r,raw}=await askProposal(reworkPrompt(c,text,prof()),ctl.signal,"rework")); }
  catch(e){ S.pending=null; S.ctl=null;
   if(e&&e.code==="cancelled"){ log("model_cancelled",{fn:"rework", n:rw.n}); S.phase="compose"; S.rework=null; render(); return; }
   log("model_error",{fn:"rework", code:e&&e.code, n:rw.n}); const l=errLine(e); if(l) edgeCase("rework","failure","call_failed",text,{fn:"rework"}); S.phase=remoteReady()?"rework":"compose"; S.line=l; if(!remoteReady()){ c.reworkOff=true; say(T("reworkOff")); } render(); return; }
@@ -1348,6 +1349,7 @@ async function sendRework(text){
  if(r.understood===false){ S.phase="rework"; S.line=null; notUnderstood("rework","model_off_topic",text); return; }
  if(!raw.length){ edgeCase("rework","failure","malformed_or_empty",text,{fn:"rework"}); S.phase="rework"; S.line=T("failMsg"); render(); return; }
  understood(); const tg=r.targets?clampTargets(r.targets,prof()):(c.targets||clampTargets(null,prof()));
+{ const rep=raw.filter(x=>S.histAvoid&&S.histAvoid.has(x.id)).map(x=>x.id); if(rep.length){ raw=raw.filter(x=>!rep.includes(x.id)); log("guardrail_fired",{rule:"db_repeat", ids:rep, action:"removed", source:"model"}); } }
  const v=verifyProposal(raw,{...prof(),...tg});
  v.guards.forEach(g=>log("guardrail_fired",{rule:g.rule, ids:g.ids, action:g.action, source:"model_rework"}));
  const prevItems=c.items.map(x=>({...x})), d=diffItems(prevItems,v.items), lockedKept=[...c.locked].filter(id=>{ const a=prevItems.find(x=>x.id===id), b=v.items.find(x=>x.id===id); return a&&b&&Math.abs(a.g-b.g)<2; });
@@ -1387,7 +1389,7 @@ function openComposition({source, items, phrase="", title="", why="", correction
  S.comp={id:"c"+(++compSeq), source, items:items.map(x=>({...x})), phrase, title, why, whyText:why, whySource:why?"translate":null, whySig:sig(items), whyOpen:false,
   turns: turns || (phrase?[{role:"request", text:phrase}]:[]), reworkN, reworkOff:false, targets, allergyNote, slot:slotInfo(),
   corrections, proposal, edits:0, locked:new Set(), violKeys:new Set(), screens:source==="model"?[0,1,2]:[1,2], blocked:null, editSnap:null};
- S.phase="compose"; S.activeFormulation=source==="model"?"proposed":null; S.ui.screen=S.comp.screens[0]; S.ui.focus=0; S.ui.edit=null; S.ui.picker=source==="manual"; S.ui.pickCls=null; S.ui.pickFocus=1;
+ if(source!=="manual") S.guide=null; S.phase="compose"; S.activeFormulation=source==="model"?"proposed":null; S.ui.screen=S.comp.screens[0]; S.ui.focus=0; S.ui.edit=null; S.ui.picker=source==="manual"; S.ui.pickCls=null; S.ui.pickFocus=1;
  log("composition_shown",{comp_id:S.comp.id, source, items:S.comp.items, title, why, local_totals:roundT(totals(S.comp.items)), slot_real:S.comp.slot.real, slot_used:S.comp.slot.used, slot_forced:S.comp.slot.forced, slot_source:S.comp.slot.source, energy_target:tprof().kcal});
  trackViolations("composition"); render();
 }
@@ -1428,7 +1430,7 @@ function addIngredient(id,via){
  const ex=c.items.find(x=>x.id===id); if(ex) ex.g=10; else c.items.push({id,g:10});
  c.items=solve(c.items,p,{fixed:c.locked, anchorW:0.15}); c.edits++; const x=c.items.find(i=>i.id===id);
  log("edit",{kind:"add", ingredient:id, from:0, to:x.g, via, rebalanced:c.items.filter(i=>i.id!==id&&before[i.id]!==i.g).map(i=>({id:i.id,from:before[i.id],to:i.g})), comp_id:c.id, local_totals:roundT(totals(c.items))});
- trackViolations("user_add"); sayMissing(); c.blocked=null; S.ui.picker=false; S.ui.focus=c.items.findIndex(i=>i.id===id); S.ui.edit=id; render();
+ trackViolations("user_add"); sayMissing(); if(S.guide&&guideStep()&&guideStep().cls.includes(ING[id].cls)) guideNext("added:"+id); c.blocked=null; S.ui.picker=false; S.ui.focus=c.items.findIndex(i=>i.id===id); S.ui.edit=id; render();
 }
 function applyFix(v,via){ const c=S.comp, before=c.items.map(i=>({...i})); commitEdit(true); if(localFix(v)===false) return false; c.edits++; S.fixOffer=null;
  log("guardrail_fix_applied",{rule:v.rule, ids:v.ids, before, after:c.items, comp_id:c.id, via:via||"touch"}); sayMissing(); trackViolations("guardrail_fix"); render(); }
@@ -1440,8 +1442,18 @@ function canConfirm(){ const c=S.comp; return !!c && massOf(c.items)>=RULES.mass
 let loadSeq=0;
 function later(ms,fn){ const id=setTimeout(()=>{ S.timers=S.timers.filter(x=>x!==id); fn(); },ms); S.timers.push(id); }
 function clearTimers(){ S.timers.forEach(clearTimeout); S.timers=[]; }
+/* DATABASE DELLE POD: ogni Pod confermata resta nella scheda del profilo. Gli ingredienti principali sono quelli
+   che danno carattere al piatto (verdure, frutta, cereali, farine, frutta secca, aromi), almeno l'8% della massa, al massimo 3.
+   Le proposte successive per lo stesso profilo li evitano (ultime 5 Pod), a meno che la richiesta non li nomini. */
+const MAIN_CLS=["veg","fruit","cereal","flour","nut","analog"], DB_AVOID_LAST=5;
+function podMain(items){ const t=massOf(items)||1; return items.filter(x=>x.g>0&&ING[x.id]&&MAIN_CLS.includes(ING[x.id].cls)&&x.g>=0.08*t).sort((a,b)=>b.g-a.g).slice(0,3).map(x=>x.id); }
+function histAvoid(p,text){ const named=new Set(namedIngredients(text||"").ids||[]); const ids=new Set();
+ (p.pods||[]).slice(-DB_AVOID_LAST).forEach(d=>(d.main||[]).forEach(i=>{ if(!named.has(i)) ids.add(i); })); return ids; }
+function histLine(){ const a=[...(S.histAvoid||[])]; return a.length?`\nRECENT PODS of this person already used as main ingredients: ${a.map(nm).join(", ")}. They are removed from the list below: build a different dish, do not use or name them.`:""; }
 function confirmPod(){
  if(!canConfirm()) return; commitEdit(); const c=S.comp;
+ { const p=prof(); p.pods=p.pods||[]; const d={n:p.pods.length+1, at:new Date().toISOString(), slot:slotInfo().used, title:c.title||null, source:c.source, main:podMain(c.items), items:c.items.filter(x=>x.g>0).map(x=>({id:x.id,g:x.g}))};
+  p.pods.push(d); log("pod_saved_to_profile",{profile:p.key, n:d.n, main:d.main, title:d.title}); }
  log("confirm",{comp_id:c.id, source:c.source, origin:STRINGS.it.screens[S.ui.screen].slice(0,3), items:c.items.filter(x=>x.g>0), local_totals:roundT(totals(c.items)), edits:c.edits, title:c.title});
  const order=c.items.filter(x=>x.g>0).map(x=>({id:x.id,g:x.g}));
  S.load={id:"l"+(++loadSeq), order, n:0, asked:null, closed:null, waiting:false, promptAt:null}; S.fixOffer=null;
@@ -1586,7 +1598,7 @@ function chooseProfile(key,created){
 }
 /* OSPITE: prima di chiedere cosa vuole mangiare, la macchina chiede allergie, intolleranze e malattie.
    La risposta vale solo per questo ospite: ogni volta che si sceglie "ospite" la scheda salute riparte vuota. */
-function startGuestHealth(){ const g=S.profiles.guest; g.health={allergies:null,intolerances:null,conditions:null,extraIds:[]}; g.allergyText=""; g.allergyWords=[]; deriveConstraints(g);
+function startGuestHealth(){ const g=S.profiles.guest; g.health={allergies:null,intolerances:null,conditions:null,extraIds:[]}; g.allergyText=""; g.allergyWords=[]; g.pods=[]; deriveConstraints(g);
  S.draft={id:"g"+Date.now(), guest:true, name:"", mode:"quick"}; S.phase="create_health"; log("guest_health_question",{}); render(); focusVoice(); }
 function pickProfile(k){ if(k==="guest"){ startGuestHealth(); return; } if(k==="plus"){ S.draft={id:"d"+Date.now(),name:"",mode:null,modeTries:0,likes:"",deepQ:"",deepA:"",deepSource:null,age:null,weight:null,healthText:null,health:null,diet:null,refused:null}; S.phase="create_name"; log("profile_create_start",{}); render(); focusVoice(); return; } chooseProfile(k,false); }
 /* ============ CASI LIMITE: COSA CONTA COME RISPOSTA ============
@@ -1950,9 +1962,39 @@ function askDeep(){
  log("profile_followup_question",{text:d.deepQ, source:"fixed", asked_about:"merenda", covered:Object.keys(d.tastes).filter(k=>d.tastes[k])});
  S.phase="create_deep"; render(); focusVoice();
 }
-function startManual(){ S.line=null; openComposition({source:"manual", items:[]}); sayMissing(); render(); }
+/* GUIDA SENZA RETE: istruzioni fisse, nessun modello. Ordine pensato per una Pod che stia in piedi:
+   prima la base proteica, poi ciò che sazia, poi fibra (verdura o frutta secondo il momento), consistenza,
+   sapore e, per i pasti salati, il condimento. Un passaggio avanza quando si aggiunge un ingrediente delle sue classi. */
+const GUIDE_TXT={
+ it:{protein:"Iniziamo dalla base proteica: tocca + e scegli un isolato, un concentrato o una farina proteica.",
+  carb:"Ora la parte che sazia: aggiungi un cereale o un amido.",
+  fibreVeg:"Continuiamo con le fibre: aggiungi una verdura in polvere.", fibreFruit:"Continuiamo con le fibre: aggiungi un frutto in polvere.",
+  texture:"Per la consistenza aggiungi un po' di frutta secca, semi o una base vegetale.",
+  flavourSav:"Adesso il sapore: un'erba, una spezia o un aroma.", flavourSweet:"Adesso il gusto: un tocco dolce, cacao o una spezia.",
+  season:"Per finire, un condimento o un pizzico di sale."},
+ en:{protein:"Let's start with the protein base: tap + and choose an isolate, a concentrate or a protein flour.",
+  carb:"Now the filling part: add a grain or a starch.",
+  fibreVeg:"Next, fibre: add a vegetable powder.", fibreFruit:"Next, fibre: add a fruit powder.",
+  texture:"For texture, add a little nuts, seeds or a plant base.",
+  flavourSav:"Now the flavour: a herb, a spice or an aroma.", flavourSweet:"Now the taste: a sweet touch, cocoa or a spice.",
+  season:"To finish, a condiment or a pinch of salt."}};
+function guideSteps(){ const sweet=["colazione","merenda"].includes(slotInfo().used);
+ const st=[{k:"protein",cls:["iso","conc","flour"]},{k:"carb",cls:["cereal"]},
+  sweet?{k:"fibreFruit",cls:["fruit","veg"]}:{k:"fibreVeg",cls:["veg","fruit"]},{k:"texture",cls:["nut","base"]},
+  sweet?{k:"flavourSweet",cls:["sweet","spice"]}:{k:"flavourSav",cls:["herb","spice","analog"]}];
+ if(!sweet) st.push({k:"season",cls:["umami"]}); return st; }
+const guideStep=()=>S.guide&&S.guide.steps[S.guide.i];
+function guideSay(){ const st=guideStep(); if(!st){ say(T("guideEnd")); log("guide_done",{steps:S.guide.steps.length}); S.guide=null; return; }
+ say(GUIDE_TXT[S.lang==="en"?"en":"it"][st.k]); log("guide_step",{step:S.guide.i+1, of:S.guide.steps.length, key:st.k, classes:st.cls}); }
+function guideNext(reason){ if(!S.guide) return; log("guide_advance",{from:guideStep().k, reason}); S.guide.i++; guideSay(); }
+function goRest(why){ commitEdit(); clearTimers(); if(S.ctl) S.ctl.abort(); S.activeFormulation=null; S.phase="rest"; S.comp=null; S.line=null; S.profileKey=null; S.fixOffer=null; S.load=null; S.prep.step=-1; S.draft=null; S.guide=null; S.netAsk=null; S.rework=null;
+ log("back_to_rest",{why}); render(); }
+function startManual(guide){ S.line=null; S.guide=null; openComposition({source:"manual", items:[]});
+ if(guide){ S.guide={i:0, steps:guideSteps()}; log("guide_start",{slot:slotInfo().used}); say(T("guideIntro")); guideSay(); }
+ else { if(guide===false){ say(T("helpNo")); log("guide_declined",{}); } sayMissing(); }
+ render(); focusVoice(); }
 function tapScreen(){
- if(!S.session||S.session.ended) return;
+ if(!S.session||S.session.ended||S.netAsk) return;
  if(S.phase==="rest"){ S.phase="greet"; log("approach",{via:"touch"}); render(); return; }
  if(S.phase==="greet"){ S.phase="profile"; log("profile_screen",{via:"touch"}); render(); return; }
  if(S.phase==="create_done"){ chooseProfile(S.newKey,true); return; }
@@ -1985,7 +2027,16 @@ function setContent(key,html){
 }
 /* Un solo passaggio di render cambia la faccina e pubblica in chat il messaggio dello stato: la faccina
    e la frase compaiono nello stesso fotogramma, con la stessa dissolvenza (210 ms). */
-function render(){ renderScreen(); flushChat(); renderVoice(); renderPanel(); }
+/* RETE PERSA: quando il modello smette di essere raggiungibile durante la sessione (interruttore, chiamate rifiutate),
+   la macchina lo dice in chat e chiede se continuare. «Sì»: si resta nella fase corrente con le funzioni locali.
+   «No»: riposo. Durante il caricamento e la preparazione non chiede nulla: lì la rete non serve. */
+let netWasReady=null, netSeq=0;
+function netWatch(){ const ok=remoteReady(); if(netWasReady===null){ netWasReady=ok; return; }
+ if(ok&&S.netAsk){ log("net_back",{phase:S.phase}); S.netAsk=null; }
+ if(netWasReady&&!ok&&S.session&&!S.session.ended&&!["rest","load","close_wait","prep","done"].includes(S.phase)&&!S.netAsk){
+  S.netAsk={id:++netSeq, phase:S.phase}; log("net_lost_question",{phase:S.phase}); }
+ netWasReady=ok; }
+function render(){ netWatch(); renderScreen(); flushChat(); renderVoice(); renderPanel(); }
 function renderScreen(){
  if(!S.session){ setFace(1); setContent("",""); return; }
  const F=faceFor(), P=S.phase; setFace(F.n);
@@ -2007,6 +2058,7 @@ addEventListener("resize",()=>{ if(rig.classList.contains("open")) layoutRig(); 
 function composeMsg(c){ const parts=[T("thought")+" "+(c.title||"Pod")];
  if(c.allergyNote) parts.push(c.allergyNote); if(c.source==="model"&&c.corrections.length) parts.push(T("recalculated")); return parts.join(". ")+"."; }
 function stateMsg(){
+ if(S.netAsk) return {sig:"netask|"+S.netAsk.id, once:true, text:T("netQ")};
  const P=S.phase;
  if(S.pending) return {sig:"pend|"+S.pendSeq, text:["deep","mode","summary","patch"].includes(S.pending)?null:T("thinking")}; // la domanda di approfondimento si prepara in silenzio, con la faccina 3 già in vista
  switch(P){
@@ -2027,7 +2079,7 @@ function stateMsg(){
   case "create_confirm": return {sig:P+"|"+S.draft.id+"|"+S.draft.sumVer, once:true, pre:[S.draft.summary], text:T("confirmQ")};
   case "create_correct": return {sig:P+"|"+S.draft.id, once:true, text:T("askCorrect")};
   case "create_done": return {sig:P+"|"+S.newKey, pre:(S.draft&&S.draft.finalSummary)?[S.draft.finalSummary]:[], text:T("allReady")};
-  case "listen": { if(S.line) return {sig:"listen|"+S.line, text:S.line}; if(!remoteReady()) return {sig:"listen|off|"+S.lang, text:T("pickOffline"), click:true};
+  case "listen": { if(S.line) return {sig:"listen|"+S.line, text:S.line}; if(!remoteReady()) return {sig:"listen|off|"+S.lang+"|"+(S.listenSeq||0), text:(prof()&&prof().name?(S.lang==="en"?"Hey ":"Hey ")+prof().name+", "+T("helpQ").charAt(0).toLowerCase()+T("helpQ").slice(1):T("helpQ"))};
    /* il saluto si calcola una volta per ingresso nell'ascolto: l'ora non cambia a ogni ridisegno */
    const gk=S.profileKey+"|"+S.slotForced+"|"+S.lang+"|"+(S.listenSeq||0); if(!S.greet||S.greet.key!==gk){ S.greet={key:gk, ...greeting()}; }
    return {sig:"listen|"+gk, text:S.greet.text, extra:S.greet.extra}; }
@@ -2111,7 +2163,7 @@ function composeView(){
 }
 /* con 200 ingredienti la scelta è a due livelli: prima la famiglia, poi l'ingrediente */
 function pickerList(){ const p=prof();
- if(!S.ui.pickCls) return [{close:true}, ...CLASS_ORDER.map(c=>({cls:c, l:T("cls."+c)+"  ·  "+INGREDIENTS.filter(i=>i.cls===c).length}))];
+ if(!S.ui.pickCls){ const st=guideStep(), ord=st?[...st.cls,...CLASS_ORDER.filter(c=>!st.cls.includes(c))]:CLASS_ORDER; return [{close:true}, ...ord.map(c=>({cls:c, l:T("cls."+c)+"  ·  "+INGREDIENTS.filter(i=>i.cls===c).length}))]; }
  const L=[{back:true},{hdr:true,l:T("cls."+S.ui.pickCls)}];
  INGREDIENTS.filter(i=>i.cls===S.ui.pickCls).forEach(i=>L.push({id:i.id,l:nm(i.id),ex:!!excludedBy(i.id,p),inC:S.comp.items.some(x=>x.id===i.id&&x.g>0)}));
  return L; }
@@ -2154,11 +2206,11 @@ function goScreen(to,via,abs){ const c=S.comp; if(!c) return; c.reworkOff=false;
    conversazione, dal pannello e dalla sua freccia. Il riposo, il saluto, il profilo appena creato e il "Tocca per comporre"
    senza rete passano da tapScreen; un clic sullo schermo del device lo gestisce già il suo ascoltatore. */
 function TAP_PHASES(){ return S.phase==="rest"||S.phase==="greet"||S.phase==="create_done"||(S.phase==="listen"&&!remoteReady()&&!S.pending); }
-document.addEventListener("click",e=>{ if(!S.session||S.session.ended||e.target.closest(".voice,.panel,.panelWrap,.ptog,.setup,.chatcol")) return; if(S.waitSince!=null&&e.timeStamp<S.waitSince) return;
+document.addEventListener("click",e=>{ if(S.netAsk||!S.session||S.session.ended||e.target.closest(".voice,.panel,.panelWrap,.ptog,.setup,.chatcol")) return; if(S.waitSince!=null&&e.timeStamp<S.waitSince) return;
  if(S.phase==="load"&&S.load&&S.load.waiting) pourCurrent(); else if(S.phase==="close_wait") closeLid(); else if(S.phase==="prep"&&S.prep.waitPod) showPod();
  else if(TAP_PHASES()&&!e.target.closest("#screen")){ S.waitSince=null; tapScreen(); } });
 screen.addEventListener("click",e=>{
- if(swallow){ swallow=false; return; }
+ if(swallow){ swallow=false; return; } if(S.netAsk) return;
  if(!S.session||S.session.ended||S.phase==="close_wait"||S.phase==="load"||(S.phase==="prep"&&S.prep.waitPod)) return;
  const b=e.target.closest("button");
  if(!b){ tapScreen(); return; }
@@ -2188,14 +2240,14 @@ document.addEventListener("keydown",e=>{ if(e.target.tagName==="INPUT"||e.target
 
 /* ---------------- 14. VOCE SIMULATA (scheda sotto il dispositivo) ---------------- */
 const voiceForm=document.getElementById("voiceForm"), voiceIn=document.getElementById("voiceIn");
-const voiceMode=()=>{ if(!S.session||S.session.ended) return "idle"; if(S.phase==="listen") return remoteReady()?"listen":"off"; if(S.phase==="rework") return "rework"; if(S.phase.startsWith("create_")&&S.phase!=="create_done"&&S.phase!=="create_summary") return S.phase; if(S.phase==="slot_taste") return "slot_taste";
+const voiceMode=()=>{ if(!S.session||S.session.ended) return "idle"; if(S.netAsk) return "net"; if(S.phase==="listen") return remoteReady()?"listen":(S.pending?"off":"help"); if(S.phase==="compose"&&S.guide&&!S.fixOffer&&!S.pending) return "guide"; if(S.phase==="rework") return "rework"; if(S.phase.startsWith("create_")&&S.phase!=="create_done"&&S.phase!=="create_summary") return S.phase; if(S.phase==="slot_taste") return "slot_taste";
  if(S.phase==="compose"&&S.fixOffer&&!S.pending) return "fix"; if(S.phase==="compose"&&S.comp&&S.activeFormulation==="proposed"&&!S.pending&&!S.ui.picker) return "decide"; if(S.phase==="close_wait") return "close"; if((S.phase==="load"&&S.load&&S.load.waiting)||(S.phase==="prep"&&S.prep.waitPod)) return "click"; return "idle"; };
 function renderVoice(){
  document.getElementById("offBadge").hidden=remoteReady();
  const m=voiceMode(), on=!["idle","off","close","click"].includes(m)&&!S.pending;
  document.getElementById("voiceLabel").textContent=T("vLabel."+(m==="off"?"listen":(m==="close"||m==="click"?"idle":m)));
  voiceIn.placeholder=m==="listen"?T("vPh"):""; voiceIn.disabled=!on; document.getElementById("voiceSend").disabled=!on; document.getElementById("voiceSend").textContent=T("vSend");
- let h; if(m==="listen") h=T("vHint.on"); else if(m==="rework") h=T("vHint.rework"); else if(m==="fix") h=T("vHint.fix"); else if(m==="close") h=T("vHint.close"); else if(m==="click") h=T("vHint.click"); else if(m==="create_likes"&&remoteReady()) h=T("vHint.likesOn"); else if(m==="slot_taste") h=T("vHint.slot"); else if(SENS_PHASES.includes(m)&&m!=="create_diet") h=T("vHint.sens"); else if(S.comp&&S.comp.reworkOff) h=T("vHint.reworkOff"); else if(m.startsWith("create")) h=T("vHint.create"); else if(m==="off") h=!S.online?T("vHint.off"):(S.sample===undefined?T("vHint.wait"):T("vHint.na")); else h=T("vHint.idle");
+ let h; if(["net","help","guide","decide"].includes(m)) h=T("vHint."+m); else if(m==="listen") h=T("vHint.on"); else if(m==="rework") h=T("vHint.rework"); else if(m==="fix") h=T("vHint.fix"); else if(m==="close") h=T("vHint.close"); else if(m==="click") h=T("vHint.click"); else if(m==="create_likes"&&remoteReady()) h=T("vHint.likesOn"); else if(m==="slot_taste") h=T("vHint.slot"); else if(SENS_PHASES.includes(m)&&m!=="create_diet") h=T("vHint.sens"); else if(S.comp&&S.comp.reworkOff) h=T("vHint.reworkOff"); else if(m.startsWith("create")) h=T("vHint.create"); else if(m==="off") h=!S.online?T("vHint.off"):(S.sample===undefined?T("vHint.wait"):T("vHint.na")); else h=T("vHint.idle");
  document.getElementById("voiceHint").textContent=h;
 }
 function focusVoice(){ setTimeout(()=>{ if(!voiceIn.disabled) voiceIn.focus({preventScroll:true}); },0); }
@@ -2205,6 +2257,16 @@ const YES_RE=/^\s*(s[iì]|ok|okay|va bene|correggi|fallo|certo|yes|sure|fix it|d
 voiceForm.addEventListener("submit",e=>{ e.preventDefault(); const v=voiceIn.value, m=voiceMode(), shown=v.trim()?v.trim().slice(0,400)+(v.trim().length>400?"…":""):"";
  if(["idle","off","close","click"].includes(m)) return;
  voiceIn.value=""; if(shown) post("u",shown,{purpose:m});
+ if(m==="net"){ const t=String(v||"").trim(); const y=GREET_YES.test(t)||/^\s*(continua|continuiamo|andiamo|go on|continue)/i.test(t), n=GREET_NO.test(t)||/^\s*(basta|stop|riposo)/i.test(t);
+  if(!y&&!n){ notUnderstood("net","not_yes_no",v); return; } understood(); const ph=S.netAsk.phase; log("net_answer",{answer:y?"continue":"rest", phase:ph}); S.netAsk=null;
+  if(y){ if(S.phase==="listen") S.line=null; render(); focusVoice(); return; }
+  say(T("netBack")); goRest("net_lost"); return; }
+ if(m==="help"){ const t=String(v||"").trim(), y=GREET_YES.test(t)||/^\s*(aiutami|guidami|help)/i.test(t), n=GREET_NO.test(t)||/^\s*(faccio da solo|da solo|by myself)/i.test(t);
+  if(!y&&!n){ notUnderstood("help","not_yes_no",v); return; } understood(); log("help_answer",{answer:y?"yes":"no"}); startManual(!!y); return; }
+ if(m==="guide"){ const t=String(v||"").trim();
+  if(/^\s*(salta|saltiamo|avanti|prossimo|skip|next)\b/i.test(t)){ understood(); say(T("guideSkip")); guideNext("skipped"); render(); return; }
+  if(/^\s*(basta|stop|fine|faccio da solo|da solo|enough|by myself)\b/i.test(t)){ understood(); log("guide_stopped",{at:guideStep()&&guideStep().k}); S.guide=null; say(T("guideStop")); render(); return; }
+  notUnderstood("guide","not_skip_stop",v); return; }
  if(m==="listen"&&!S.line&&S.greet&&!S.pending){ const t=String(v||"").trim(), y=t.match(GREET_YES), n=t.match(GREET_NO);
   if(y||n){ const rest=t.slice((y||n)[0].length).replace(/^[\s,.:;!-]+/,"").trim(), k=S.greet.extra.greeting_slot; understood();
    if(y){ log("greet_answer",{answer:"yes", slot:k}); S.reqSlot=k; const ph=T("greetQ."+k).replace(/\?$/,"")+(rest?", "+rest:""); if(needSlotTaste()){ askSlotTaste(ph); return; } sendPhrase(ph); return; }
@@ -2260,6 +2322,7 @@ function cardHTML(p){ const un=`<span class="unf">${T("unfilled")}</span>`, h=p.
   ${hRow("allergies",T("pAlg"))}${hRow("intolerances",T("pIntol"))}${hRow("conditions",T("pCond"))}
   <div class="field"><span>${T("pRefused")}: ${val(p.refused,x=>x.ids.length?esc(p.refusedIds.map(nm).join(", ")):(x.text?esc(x.text):`<span class="unf">${T("noneF")}</span>`))}</span></div>
   <div class="small">${T("pExcl")}: ${ex.length?esc(ex.join(", ")):T("none")}${rules.length?` · ${T("pRules")}: ${esc(rules.join(", "))}`:""}</div>
+  <div class="field"><span>${T("pDb")}</span>${(p.pods||[]).length?`<dl class="kvp">${p.pods.map(d=>`<dt>${d.n} · ${esc(T("slots."+d.slot))}</dt><dd>${esc(d.title||"Pod")}${d.main.length?` <span class="unf">(${T("pDbMain")}: ${esc(d.main.map(nm).join(", "))})</span>`:""}</dd>`).join("")}</dl>`:`<span class="unf">${T("pDbEmpty")}</span>`}<div class="small">${T("pDbNote")}</div></div>
   <div class="small">${T("pSens")}</div>`; }
 function renderPanel(){
  if(panel.contains(document.activeElement)&&document.activeElement.tagName==="INPUT"){ updatePanelLive(); return; }
@@ -2307,7 +2370,7 @@ panel.addEventListener("click",async e=>{
  if(b.id==="btnExport") return exportLog();
  if(b.id==="btnCopy"){ try{ await navigator.clipboard.writeText(JSON.stringify(buildLog(),null,2)); S.ui.exportMsg=T("pCopied"); }catch(_){ S.ui.exportMsg=T("pExportErr"); } renderPanel(); return; }
  if(b.id==="btnCancel"){ if(S.ctl) S.ctl.abort(); return; }
- if(b.id==="btnRest"){ commitEdit(); clearTimers(); S.activeFormulation=null; log("researcher_reset",{}); S.phase="rest"; S.comp=null; S.line=null; S.profileKey=null; S.fixOffer=null; S.load=null; S.prep.step=-1; render(); return; }
+ if(b.id==="btnRest"){ log("researcher_reset",{}); goRest("researcher"); return; }
  if(b.id==="btnContinue"){ continueCycle(); return; }
  if(b.id==="btnNewComp"){ continueCycle(); setPanel(false,"continue"); return; }
  if(b.id==="btnCloseSes"){ closeSession(); return; }
