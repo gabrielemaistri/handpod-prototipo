@@ -94,7 +94,7 @@ body.closable,.device.closable,body.tapwait{cursor:pointer}
   /* registrazione sul disco nero dell'immagine (2560x2560): misurata con un fit circolare sul bordo del disco */
   --cx:49.66%; --cy:51.76%; --d:28.0%}
 .layer{position:absolute;inset:0;transition:opacity 210ms var(--ease)}
-.faceSlot{position:absolute;left:14cqw;top:6cqh;width:72cqw;height:72cqh;pointer-events:none}
+.faceSlot{position:absolute;left:6.8cqw;top:-5.2cqh;width:86.4cqw;height:86.4cqh;pointer-events:none} /* +20%: la faccia cresce verso l'alto, il bordo inferiore (circa 62cqh) resta sopra il titolo */
 .faceSlot svg{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity 210ms var(--ease)}
 .faceSlot svg.in{opacity:1}
 .faceSlot.off{opacity:0}
@@ -172,6 +172,12 @@ body.closable,.device.closable,body.tapwait{cursor:pointer}
 .wl.scroll::-webkit-scrollbar{display:none}
 .wr{box-sizing:border-box;position:relative;width:100%;min-width:0;flex:none;height:8.4cqh;display:grid;grid-template-columns:1fr auto;align-items:center;gap:2cqw;padding:0 3cqw;border:none;background:none;color:var(--scr-fg);text-align:left;border-radius:999px;font-size:max(3.6cqh,11px);font-weight:400;transition:opacity .16s var(--ease);touch-action:pan-y}
 .wr .n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* elenco di proposte o ricette: titolo, una riga sul perché, ingredienti principali; nessuna quantità */
+.opt{box-sizing:border-box;flex:none;width:100%;display:flex;flex-direction:column;gap:.5cqh;padding:1.6cqh 3cqw;border:none;border-top:1px solid #2a2927;background:none;color:var(--scr-fg);text-align:left}
+.opt:first-child{border-top:none}
+.opt .ot{font-size:max(4.2cqh,12px);line-height:1.15}
+.opt .ow{font-size:max(2.7cqh,9px);line-height:1.25;opacity:.8;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.opt .om{font-size:max(2.5cqh,8.5px);letter-spacing:.03em;opacity:.6}
 .wr .g{font-variant-numeric:tabular-nums;white-space:nowrap}
 .wr .g small{font-size:.72em;letter-spacing:.02em;opacity:.7}
 .wr.ed{background:var(--scr-fg);color:var(--scr-bg);grid-template-columns:auto minmax(0,1fr) auto auto;gap:1.4cqw;padding:0 .9cqh}
@@ -204,7 +210,7 @@ body.closable,.device.closable,body.tapwait{cursor:pointer}
 .msg{max-width:90%;display:flex;flex-direction:column;gap:1px;opacity:0;transition:opacity 210ms var(--ease)}
 .msg.in{opacity:1}
 .msg .who{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-2)}
-.msg .tx{font-size:14px;line-height:1.35;padding:6px 11px;border-radius:14px;overflow-wrap:anywhere}
+.msg .tx{font-size:15px;line-height:1.35;padding:6px 11px;border-radius:14px;overflow-wrap:anywhere}
 .msg.m{align-self:flex-start}
 .msg.m .tx{background:var(--bg);border:1px solid var(--line);border-top-left-radius:4px}
 .msg.u{align-self:flex-end;align-items:flex-end}
@@ -299,7 +305,7 @@ details summary{cursor:pointer;font-size:13.5px}
 
 <script>
 /* =====================================================================
-   HandPod, prototipo navigabile, versione 16.
+   HandPod, prototipo navigabile, versione 17.
    Divisione del lavoro come nella Tabella 6.2 della tesi:
    LOCALE (in questa pagina, nessuna rete): calcolo nutrizionale e ribilanciamento,
    vincoli di sicurezza, profili e loro creazione (incluso il riconoscimento delle
@@ -357,16 +363,16 @@ const STRINGS = {
   askSlot:"Prima di procedere, una cosa sola: {s} come ti piace mangiare?",
   slots:{colazione:"colazione",pranzo:"pranzo",merenda:"merenda",cena:"cena",spuntino:"spuntino"}, slotsAt:{colazione:"a colazione",pranzo:"a pranzo",merenda:"a merenda",cena:"a cena",spuntino:"per lo spuntino"},
   pSlot:"Fascia di consumo", slotAuto:"Automatica dall'ora (ora: {s})", slotReal:"reale", slotForced:"forzata", slotNote:"Strumento del prototipo, non funzione del prodotto: serve a mostrare una fascia diversa da quella dell'ora.",
-  reask:{net:"Dimmi «sì» per continuare anche senza internet, oppure «no» per tornare a riposo.", help:"Dimmi «sì» se vuoi che ti guidi, oppure «no» se preferisci scegliere da solo.", guide:"Dimmi «salta» per passare al prossimo passaggio, oppure «basta» per continuare da solo.", decide:"Dimmi «confermo» per preparare questo piatto, oppure cosa vuoi cambiare, per esempio «più saporito».", create_clarify:"Rispondimi in poche parole su quel punto.", create_confirm:"Rispondi «sì» se è giusto, oppure dimmi cosa correggere.", create_correct:"Dimmi in poche parole cosa cambiare, per esempio «a cena mangio pesce».", create_name:"Dimmi solo il tuo nome, per esempio «Giulia».", create_mode:"Scegli una delle due: scrivi «completo» per un profilo dettagliato oppure «veloce» per partire subito.", create_age:"Scrivimi solo l'età in numero, per esempio «34».", create_weight:"Scrivimi solo il peso in chili, per esempio «68».", create_health:"Se non hai nulla scrivi «nessuna»; altrimenti nominale, per esempio «intolleranza al lattosio» oppure «celiachia».", create_diet:"Scrivi «nessuna» oppure il nome della dieta, per esempio «vegetariana».", create_refuse:"Scrivi «nessuno» oppure il nome dell'ingrediente, per esempio «coriandolo».", create_likes:"Dimmi una cosa che ti piace mangiare e quando, per esempio «dolce al mattino, salato a cena».", create_deep:"Rispondimi in poche parole: va bene anche solo «sì» o «no».", slot_taste:"{s} preferisci qualcosa di dolce o di salato? Per esempio «qualcosa di dolce e leggero».", listen:"Dimmi che cosa vuoi mangiare, per esempio «un pranzo con ceci e limone».", rework:"Dimmi una sola cosa da cambiare, per esempio «più saporito» oppure «senza zucca».", fix:"Vuoi che corregga io le quantità? Rispondi «sì» oppure «no»."},
-  reworkAsk:"Cosa cambio", decideQ:"Confermi o cambiamo qualcosa?", decideBlocked:"Prima va sistemato quello che vedi sullo schermo, poi posso confermare.", fixAsk:"Correggo io?", fixDone:"Fatto, ho ricalcolato le quantità", fixKept:"Va bene, lascio com'è",
+  reask:{help:"Dimmi «passo per passo», «ricetta» oppure «da solo».", look:"Dimmi «fammi vedere» per guardare gli ingredienti, oppure «confermo» per andare avanti.", choose:"Dimmi il numero della proposta che ti va, per esempio «la prima».", recipe:"Dimmi il numero della ricetta, per esempio «la seconda».", rework:"Dimmi cosa cambiare, per esempio «più saporito», oppure «va bene così» per confermare.", net:"Dimmi «sì» per continuare anche senza internet, oppure «no» per tornare a riposo.", help:"Dimmi «sì» se vuoi che ti guidi, oppure «no» se preferisci scegliere da solo.", guide:"Dimmi «salta» per passare al prossimo passaggio, oppure «basta» per continuare da solo.", decide:"Dimmi «confermo» per preparare questo piatto, oppure cosa vuoi cambiare, per esempio «più saporito».", create_clarify:"Rispondimi in poche parole su quel punto.", create_confirm:"Rispondi «sì» se è giusto, oppure dimmi cosa correggere.", create_correct:"Dimmi in poche parole cosa cambiare, per esempio «a cena mangio pesce».", create_name:"Dimmi solo il tuo nome, per esempio «Giulia».", create_mode:"Scegli una delle due: scrivi «completo» per un profilo dettagliato oppure «veloce» per partire subito.", create_age:"Scrivimi solo l'età in numero, per esempio «34».", create_weight:"Scrivimi solo il peso in chili, per esempio «68».", create_health:"Se non hai nulla scrivi «nessuna»; altrimenti nominale, per esempio «intolleranza al lattosio» oppure «celiachia».", create_diet:"Scrivi «nessuna» oppure il nome della dieta, per esempio «vegetariana».", create_refuse:"Scrivi «nessuno» oppure il nome dell'ingrediente, per esempio «coriandolo».", create_likes:"Dimmi una cosa che ti piace mangiare e quando, per esempio «dolce al mattino, salato a cena».", create_deep:"Rispondimi in poche parole: va bene anche solo «sì» o «no».", slot_taste:"{s} preferisci qualcosa di dolce o di salato? Per esempio «qualcosa di dolce e leggero».", listen:"Dimmi che cosa vuoi mangiare, per esempio «un pranzo con ceci e limone».", rework:"Dimmi una sola cosa da cambiare, per esempio «più saporito» oppure «senza zucca».", fix:"Vuoi che corregga io le quantità? Rispondi «sì» oppure «no»."},
+  reworkAsk:"Cosa cambio?", decideNotU:"Scusa, non ho capito. Posso confermare così, oppure dimmi cosa cambiare.", ingHint:"Dai un occhio agli ingredienti prima di confermare, scorri a destra.", lookQ:"Vuoi dare un occhio agli ingredienti prima?", guestOpts:"Non ti conosco ancora, quindi ti propongo {n} strade. Quale ti va?", nWays:{2:"due",3:"tre"}, optLine:"{i}. {t}: {w}", histNote:"Ho lasciato fuori {x}: c'era già nella tua Pod {q}.", histWhen:{today:"di oggi",yesterday:"di ieri",before:"precedente"}, redoQ:"Hey {n}, ti va di rifare {t}, o pensiamo a qualcosa di nuovo?", redoQAnon:"Ti va di rifare {t}, o pensiamo a qualcosa di nuovo?", helpWays:"Posso guidarti passo per passo, oppure partiamo da una ricetta, oppure fai da solo.", recipesQ:"Ecco le ricette adatte a questo momento. Quale scegli?", recipesOther:"Per questo momento non ho ricette adatte al tuo profilo: eccone altre.", recipesNone:"Non ho ricette adatte al tuo profilo: scegli tu gli ingredienti.", recipeLine:"{i}. {t}", pickOpt:"Quale scegli?", decideQ:"Confermi o cambiamo qualcosa?", decideBlocked:"Prima va sistemato quello che vedi sullo schermo, poi posso confermare.", fixAsk:"Correggo io?", fixDone:"Fatto, ho ricalcolato le quantità", fixKept:"Va bene, lascio com'è",
   loadItem:"{q} di {i}", closeMe:"Richiudimi", who:{m:"HandPod",u:"Tu"}, chatEmpty:"Qui compare la conversazione con HandPod.",
   g:{allergen:"{i}: escluso dal profilo", incl:"{i}: massimo {m}%", mass:"Pod oltre {max}", fat:"Troppi grassi per compattare", salt:"Troppo sale per questo profilo", fibmin:"Poca fibra per la dieta del profilo", prot:"Troppe proteine per questo profilo", fiber:"Troppa fibra per pressare", pair:"Lino e trebbie: troppi insieme", iso:"Troppi isolati: si sbriciola", single:"Serve un altro ingrediente"},
   cls:{iso:"Isolati proteici",conc:"Concentrati proteici",flour:"Farine proteiche",cereal:"Cereali e amidi",veg:"Verdure",fruit:"Frutta",nut:"Frutta secca e semi",base:"Basi vegetali",analog:"Aromi di carne, pesce e formaggio",herb:"Erbe",spice:"Spezie",umami:"Condimenti",sweet:"Dolci, cacao e caffè",add:"Addensanti e additivi"},
   /* nomi e descrittori degli ingredienti: vedi ING_TEXT nella tabella dati */
   alg:{glutine:"glutine",soia:"soia",lupino:"lupino",guscio:"frutta a guscio",arachidi:"arachidi",sesamo:"sesamo",senape:"senape",sedano:"sedano"},
-  vLabel:{net:"Voce simulata · risposta: continuare senza rete", help:"Voce simulata · risposta: vuoi una mano", guide:"Voce simulata · guida alla Pod", decide:"Voce simulata · risposta: confermi o cambiamo", listen:"Voce simulata · frase per il device", create_name:"Voce simulata · risposta: nome", create_likes:"Voce simulata · risposta: gusti", create_deep:"Voce simulata · risposta: approfondimento", create_mode:"Voce simulata · risposta: completo o veloce", create_age:"Voce simulata · risposta: età (dato fittizio)", create_weight:"Voce simulata · risposta: peso (dato fittizio)", create_health:"Voce simulata · risposta: allergie, intolleranze, condizioni (dati fittizi)", create_diet:"Voce simulata · risposta: dieta", create_refuse:"Voce simulata · risposta: ingredienti mai", create_clarify:"Voce simulata · risposta: chiarimento", create_confirm:"Voce simulata · risposta: conferma o correzione", create_correct:"Voce simulata · risposta: correzione", slot_taste:"Voce simulata · risposta: gusti di questa fascia", create_allergies:"Voce simulata · risposta: allergie", rework:"Voce simulata · cosa vuoi cambiare", fix:"Voce simulata · risposta: correggo?", idle:"Voce simulata · conversazione con HandPod"},
+  vLabel:{look:"Voce simulata · risposta: guardare gli ingredienti", choose:"Voce simulata · scelta fra le proposte", recipe:"Voce simulata · scelta della ricetta", net:"Voce simulata · risposta: continuare senza rete", help:"Voce simulata · risposta: vuoi una mano", guide:"Voce simulata · guida alla Pod", decide:"Voce simulata · risposta: confermi o cambiamo", listen:"Voce simulata · frase per il device", create_name:"Voce simulata · risposta: nome", create_likes:"Voce simulata · risposta: gusti", create_deep:"Voce simulata · risposta: approfondimento", create_mode:"Voce simulata · risposta: completo o veloce", create_age:"Voce simulata · risposta: età (dato fittizio)", create_weight:"Voce simulata · risposta: peso (dato fittizio)", create_health:"Voce simulata · risposta: allergie, intolleranze, condizioni (dati fittizi)", create_diet:"Voce simulata · risposta: dieta", create_refuse:"Voce simulata · risposta: ingredienti mai", create_clarify:"Voce simulata · risposta: chiarimento", create_confirm:"Voce simulata · risposta: conferma o correzione", create_correct:"Voce simulata · risposta: correzione", slot_taste:"Voce simulata · risposta: gusti di questa fascia", create_allergies:"Voce simulata · risposta: allergie", rework:"Voce simulata · cosa vuoi cambiare", fix:"Voce simulata · risposta: correggo?", idle:"Voce simulata · conversazione con HandPod"},
   vSend:"Invia", vPh:"Es. qualcosa che mi tenga su fino a pranzo, con la nota di nocciola",
-  vHint:{net:"Rispondi «sì» per continuare senza rete, «no» per tornare a riposo.", help:"«Sì»: la macchina ti guida passo per passo. «No»: scegli tu gli ingredienti. Funziona senza rete.", guide:"Guida senza rete: «salta» passa al prossimo passaggio, «basta» chiude la guida.", decide:"«Sì» o «confermo» equivale a Conferma; «no», «cambiamo» o una richiesta («più saporito») equivale a Rielabora.", click:"Clicca in un punto qualsiasi dello schermo per proseguire.", sens:"Dato fittizio: usato nella sessione e incluso nel log esportato (modalità test).", on:"La frase va al modello remoto; la proposta viene poi verificata in questa pagina.", create:"La risposta resta in questa pagina.", off:"Senza rete la comprensione delle frasi non è disponibile: si compone toccando lo schermo.", wait:"Collegamento al modello in corso…", na:"Modello non disponibile in questa vista: si compone toccando lo schermo.", idle:"Il campo si attiva quando il device aspetta una risposta.", rework:"La nuova indicazione rivede la proposta attuale, non ne chiede una da zero. Tocca lo schermo per annullare.", reworkOff:"Senza rete la richiesta non può essere riformulata a parole; la composizione resta modificabile ingrediente per ingrediente sullo schermo.", fix:"Rispondi «sì» e la correzione la fa il calcolo locale (funziona anche senza rete); altrimenti modifica tu gli ingredienti.", close:"Clicca in un punto qualsiasi dello schermo per richiudere il coperchio.", likesOn:"La risposta entra nel profilo; la domanda che segue la formula il modello remoto.", slot:"La risposta completa il profilo per questa fascia; poi la richiesta prosegue."},
+  vHint:{look:"«Sì» o «fammi vedere» apre la schermata ingredienti; «confermo» o «va bene così» conferma comunque.", choose:"Tocca una proposta, oppure di' il numero o il nome.", recipe:"Tocca una ricetta, oppure di' il numero o il nome. Ricettario salvato nel dispositivo, senza rete.", net:"Rispondi «sì» per continuare senza rete, «no» per tornare a riposo.", help:"«Passo per passo» (o «sì»): la guida. «Ricetta»: il ricettario del dispositivo. «Da solo» (o «no»): scegli tu. Funziona senza rete.", guide:"Guida senza rete: «salta» passa al prossimo passaggio, «basta» chiude la guida.", decide:"«Sì» o «confermo» equivale a Conferma; «no», «cambiamo» o una richiesta («più saporito») equivale a Rielabora.", click:"Clicca in un punto qualsiasi dello schermo per proseguire.", sens:"Dato fittizio: usato nella sessione e incluso nel log esportato (modalità test).", on:"La frase va al modello remoto; la proposta viene poi verificata in questa pagina.", create:"La risposta resta in questa pagina.", off:"Senza rete la comprensione delle frasi non è disponibile: si compone toccando lo schermo.", wait:"Collegamento al modello in corso…", na:"Modello non disponibile in questa vista: si compone toccando lo schermo.", idle:"Il campo si attiva quando il device aspetta una risposta.", rework:"La nuova indicazione rivede la proposta attuale, non ne chiede una da zero. Tocca lo schermo per annullare.", reworkOff:"Senza rete la richiesta non può essere riformulata a parole; la composizione resta modificabile ingrediente per ingrediente sullo schermo.", fix:"Rispondi «sì» e la correzione la fa il calcolo locale (funziona anche senza rete); altrimenti modifica tu gli ingredienti.", close:"Clicca in un punto qualsiasi dello schermo per richiudere il coperchio.", likesOn:"La risposta entra nel profilo; la domanda che segue la formula il modello remoto.", slot:"La risposta completa il profilo per questa fascia; poi la richiesta prosegue."},
   pSession:"Sessione", pPid:"Partecipante", pScenario:"Scenario", pStart:"Inizio", pEvents:"Eventi", pPhase:"Fase",
   pTog:"Pannello del ricercatore", pImport:"Importa sessione", pImportHint:"Carica un log JSON esportato: riprende lo stesso partecipante, i profili e la conversazione, e riparte dal riposo per una nuova Pod. Se c'è una sessione aperta, esportala prima.", pImportOk:"Sessione ripresa: {p}", pImportErr:"File non valido: serve un log JSON esportato da questo prototipo.", pImportPartial:"Alcuni profili erano nel log senza la scheda completa: sono stati ripresi solo nome e valori di base.", setupImport:"Riprendi una sessione da file JSON", resumed:"Sessione ripresa da file",
   pApi:"Modello (versione sito)", apiProv:"Servizio", apiKey:"Chiave API", apiTest:"Prova", apiTesting:"Prova in corso…", apiOk:"Collegamento riuscito: il modello risponde.", apiOdd:"Il modello risponde, ma non nel formato atteso: prova un altro modello.", apiNet:"Il servizio non risponde da questa pagina (rete o blocco del browser).", apiLimit:"Limite gratuito raggiunto: riprova più tardi o domani.", apiModel:"Modello non trovato: controlla il nome del modello.", apiCredit:"Credito esaurito sul servizio.", apiHttp:"Il servizio ha risposto con un errore ({n}).", apiQuick:"Modello rapido", apiDef:"Modello bilanciato", apiSave:"Salva", apiForget:"Dimentica la chiave", apiSaved:"Chiave salvata in questo browser (…{k}).", apiNone:"Nessuna chiave: la traduzione delle frasi è spenta, si compone toccando lo schermo.", apiNote:"La chiave resta solo in questo browser: non entra nel log né nei file del sito. Usala solo su un computer tuo.", apiBad:"La chiave non è stata accettata: controllala.",
@@ -374,11 +380,11 @@ const STRINGS = {
   pExportNA:"Esportazione non disponibile in questa vista", pExportWait:"Esportazione in preparazione…", pSaved:"Log salvato", pDeclined:"Salvataggio annullato", pExportErr:"Salvataggio non riuscito",
   pNet:"Rete", netOn:"Connessa", netOff:"Scollegata", keep:"Continua", lose:"Si perde",
   keepList:"Calcolo e ribilanciamento · Vincoli · Profili e creazione profilo · Riassunto del profilo (versione locale) · Fasce orarie · Composizione ingrediente per ingrediente con la guida passo per passo · Database delle Pod del profilo · Caricamento e preparazione · Log", loseList:"Comprensione delle frasi · Rielaborazione a parole · Riga del perché dal modello · Riassunto e chiarimento del profilo dal modello · Correzioni della scheda lette dal modello",
-  pArch:"Dove gira ogni funzione", archF:["Calcolo nutrizionale, ribilanciamento, quantità in tbsp","Vincoli di sicurezza: allergie, intolleranze, condizioni, dieta, ingredienti rifiutati, limiti di processo","Riga calma del vincolo con alternativa proposta","Domande della creazione profilo e lettura delle risposte (età, peso, salute, dieta, gusti per pasto)","Riconoscimento di allergie, intolleranze, condizioni e diete scritte","Controllo delle risposte e casi limite","Fascia di consumo, ora del saluto, energia per fascia","Livello espressivo: faccine, frasi in chat, annotazioni","Caricamento della ciotola, chiusura, preparazione simulata, Pod","Log, esportazione e importazione della sessione","Scelta fra profilo veloce e completo quando le regole locali non bastano","Traduzione intento → formulazione (e frasi fuori tema)","Rielaborazione della proposta","Riga del perché ricalcolata","Riassunto del profilo e domanda di chiarimento","Aggiornamento della scheda dopo chiarimento o correzione"],
+  pArch:"Dove gira ogni funzione", archF:["Calcolo nutrizionale, ribilanciamento, quantità in tbsp","Vincoli di sicurezza: allergie, intolleranze, condizioni, dieta, ingredienti rifiutati, limiti di processo","Riga calma del vincolo con alternativa proposta","Domande della creazione profilo e lettura delle risposte (età, peso, salute, dieta, gusti per pasto)","Riconoscimento di allergie, intolleranze, condizioni e diete scritte","Controllo delle risposte e casi limite","Fascia di consumo, ora del saluto, energia per fascia","Livello espressivo: faccine, frasi in chat, annotazioni","Caricamento della ciotola, chiusura, preparazione simulata, Pod","Log, esportazione e importazione della sessione","Scelta fra profilo veloce e completo quando le regole locali non bastano","Traduzione intento → formulazione (e frasi fuori tema)","Rielaborazione della proposta","Riga del perché ricalcolata","Riassunto del profilo e domanda di chiarimento","Aggiornamento della scheda dopo chiarimento o correzione","Ricettario: dieci ricette base salvate nel dispositivo, filtro per profilo e momento, quantità ricalcolate (non richiede rete)","Storico dei pasti: database delle Pod del profilo, preferenza a evitare gli ingredienti delle ultime 2, annuncio e proposta di rifare un piatto (non richiede rete)","Proposte multiple in modalità ospite (prima richiesta della sessione)"],
   loc:"Locale", rem:"Remoto", active:"attivo", inactive:"non attivo",
   declare:"Le funzioni segnate Remoto usano un modello remoto: dentro Claude passano da Claude, sul sito dal servizio scelto nel pannello. Senza rete il riassunto del profilo e le correzioni della scheda passano alla versione locale; le altre funzioni remote si fermano e si compone toccando lo schermo. Nell'architettura proposta dalla tesi la traduzione sta a bordo, con il cloud solo come ripiego: il prototipo riproduce la divisione fra funzioni locali e remote, non l'inferenza a bordo.", offlineLocal:"senza rete: versione locale", viaClaude:"via Claude",
   pExpr:"Faccina e stato", noFace:"nessuna faccina su questa schermata", pSim:"Simulazioni a tempo dichiarate: caricamento della ciotola dopo Conferma, ingrediente per ingrediente al clic della persona, e sequenza 5-6 dopo la chiusura del coperchio (3,2 s per passo).",
-  pProfiles:"Profili", pDb:"Database delle Pod", pDbEmpty:"nessuna Pod ancora", pDbMain:"principali", pDbNote:"Le prossime proposte per questo profilo evitano gli ingredienti principali delle ultime Pod.", pActive:"attivo", pName:"Nome", pKcal:"kcal", pP:"Prot. %", pC:"Carb. %", pF:"Grassi %", pLikes:"Gusti", pAlg:"Allergie", pExcl:"Ingredienti esclusi", none:"nessuno", pAge:"Età", pWeight:"Peso", pIntol:"Intolleranze", pCond:"Condizioni che influenzano la dieta", pDiet:"Dieta", pRefused:"Ingredienti che non vuole mai (scelta, non restrizione)", pFollow:"Approfondimento", pMode:"Profilo", modeQuick:"veloce", modeFull:"completo", unfilled:"non compilato", noneF:"nessuna", years:"anni", kg:"kg", pRules:"Limiti attivi", alsoExcl:"anche", pSens:"Modalità test: il log esportato contiene la scheda completa. Usare dati fittizi.",
+  pProfiles:"Profili", pDb:"Database delle Pod", pDbEmpty:"nessuna Pod ancora", pDbMain:"principali", pDbNote:"Le proposte per questo profilo preferiscono evitare gli ingredienti principali delle ultime 2 Pod; se li lascia fuori la macchina lo dice. Dalla terza Pod il saluto può proporre di rifare un piatto già fatto (solo come domanda).", pProposals:"Proposte: con un profilo (completo o veloce) una sola proposta, quella che il profilo giustifica. In modalità ospite, alla prima richiesta della sessione, due o tre alternative: la macchina non sa niente della persona e le alternative servono a capire cosa le va.", pActive:"attivo", pName:"Nome", pKcal:"kcal", pP:"Prot. %", pC:"Carb. %", pF:"Grassi %", pLikes:"Gusti", pAlg:"Allergie", pExcl:"Ingredienti esclusi", none:"nessuno", pAge:"Età", pWeight:"Peso", pIntol:"Intolleranze", pCond:"Condizioni che influenzano la dieta", pDiet:"Dieta", pRefused:"Ingredienti che non vuole mai (scelta, non restrizione)", pFollow:"Approfondimento", pMode:"Profilo", modeQuick:"veloce", modeFull:"completo", unfilled:"non compilato", noneF:"nessuna", years:"anni", kg:"kg", pRules:"Limiti attivi", alsoExcl:"anche", pSens:"Modalità test: il log esportato contiene la scheda completa. Usare dati fittizi.",
   pTasteSlots:"Gusti per fascia", pTier:"Modello remoto", tierQuick:"Rapido (risposta in pochi secondi)", tierDefault:"Bilanciato (più accurato, più lento)",
   pLook:"Impostazioni", pCmf:"Scocca", cmf:{greige:"Grigio caldo",black:"Nero",ochre:"Ocra"}, pLang:"Lingua",
   setupTitle:"Prototipo <em>navigabile</em>", setupSub:"Inserisci l'identificativo del partecipante e avvia. La sessione resta in questo browser finché non esporti il log.",
@@ -410,16 +416,16 @@ const STRINGS = {
   askSlot:"Before we go on, just one thing: what do you like to eat {s}?",
   slots:{colazione:"breakfast",pranzo:"lunch",merenda:"afternoon snack",cena:"dinner",spuntino:"late snack"}, slotsAt:{colazione:"at breakfast",pranzo:"at lunch",merenda:"for an afternoon snack",cena:"at dinner",spuntino:"for a late snack"},
   pSlot:"Eating moment", slotAuto:"Automatic from the clock (now: {s})", slotReal:"real", slotForced:"forced", slotNote:"Prototype tool, not a product feature: shows a moment different from the current time.",
-  reask:{net:"Say «yes» to go on without the internet, or «no» to go back to rest.", help:"Say «yes» if you want me to guide you, or «no» to choose by yourself.", guide:"Say «skip» to move to the next step, or «stop» to carry on by yourself.", decide:"Say «confirm» to prepare this dish, or tell me what to change, for example «tastier».", create_clarify:"Answer in a few words about that point.", create_confirm:"Say «yes» if it is right, or tell me what to correct.", create_correct:"Tell me briefly what to change, for example «I eat fish at dinner».", create_name:"Just tell me your name, for example «Julia».", create_mode:"Pick one of the two: write «full» for a detailed profile or «quick» to start right away.", create_age:"Just write your age as a number, for example «34».", create_weight:"Just write your weight in kilos, for example «68».", create_health:"If you have nothing write «none»; otherwise name it, for example «lactose intolerance» or «coeliac disease».", create_diet:"Write «none» or the name of the diet, for example «vegetarian».", create_refuse:"Write «none» or the name of the ingredient, for example «coriander».", create_likes:"Tell me one thing you like to eat and when, for example «sweet in the morning, savoury at dinner».", create_deep:"Answer in a few words: just «yes» or «no» is fine.", slot_taste:"{s}, do you prefer something sweet or savoury? For example «something sweet and light».", listen:"Tell me what you want to eat, for example «a lunch with chickpeas and lemon».", rework:"Tell me one thing to change, for example «tastier» or «without pumpkin».", fix:"Shall I fix the amounts? Answer «yes» or «no»."},
-  reworkAsk:"What should I change", decideQ:"Shall we confirm, or change something?", decideBlocked:"First we need to fix what you see on the screen, then I can confirm.", fixAsk:"Shall I fix it?", fixDone:"Done, I recalculated the amounts", fixKept:"All right, I'll leave it",
+  reask:{help:"Say «step by step», «recipe» or «by myself».", look:"Say «show me» to look at the ingredients, or «confirm» to go on.", choose:"Tell me the number of the proposal you want, for example «the first».", recipe:"Tell me the number of the recipe, for example «the second».", rework:"Tell me what to change, for example «tastier», or «fine as it is» to confirm.", net:"Say «yes» to go on without the internet, or «no» to go back to rest.", help:"Say «yes» if you want me to guide you, or «no» to choose by yourself.", guide:"Say «skip» to move to the next step, or «stop» to carry on by yourself.", decide:"Say «confirm» to prepare this dish, or tell me what to change, for example «tastier».", create_clarify:"Answer in a few words about that point.", create_confirm:"Say «yes» if it is right, or tell me what to correct.", create_correct:"Tell me briefly what to change, for example «I eat fish at dinner».", create_name:"Just tell me your name, for example «Julia».", create_mode:"Pick one of the two: write «full» for a detailed profile or «quick» to start right away.", create_age:"Just write your age as a number, for example «34».", create_weight:"Just write your weight in kilos, for example «68».", create_health:"If you have nothing write «none»; otherwise name it, for example «lactose intolerance» or «coeliac disease».", create_diet:"Write «none» or the name of the diet, for example «vegetarian».", create_refuse:"Write «none» or the name of the ingredient, for example «coriander».", create_likes:"Tell me one thing you like to eat and when, for example «sweet in the morning, savoury at dinner».", create_deep:"Answer in a few words: just «yes» or «no» is fine.", slot_taste:"{s}, do you prefer something sweet or savoury? For example «something sweet and light».", listen:"Tell me what you want to eat, for example «a lunch with chickpeas and lemon».", rework:"Tell me one thing to change, for example «tastier» or «without pumpkin».", fix:"Shall I fix the amounts? Answer «yes» or «no»."},
+  reworkAsk:"What should I change?", decideNotU:"Sorry, I didn't understand. I can confirm it as it is, or tell me what to change.", ingHint:"Have a look at the ingredients before confirming, swipe right.", lookQ:"Would you like to look at the ingredients first?", guestOpts:"I don't know you yet, so I'll offer you {n} ways. Which one do you fancy?", nWays:{2:"two",3:"three"}, optLine:"{i}. {t}: {w}", histNote:"I left out {x}: it was already in your Pod {q}.", histWhen:{today:"from today",yesterday:"from yesterday",before:"before this one"}, redoQ:"Hey {n}, would you like to make {t} again, or shall we think of something new?", redoQAnon:"Would you like to make {t} again, or shall we think of something new?", helpWays:"I can guide you step by step, or we can start from a recipe, or you can do it yourself.", recipesQ:"Here are the recipes that suit this moment. Which one?", recipesOther:"I have no recipes for this moment that fit your profile: here are others.", recipesNone:"I have no recipes that fit your profile: choose the ingredients yourself.", recipeLine:"{i}. {t}", pickOpt:"Which one?", decideQ:"Shall we confirm, or change something?", decideBlocked:"First we need to fix what you see on the screen, then I can confirm.", fixAsk:"Shall I fix it?", fixDone:"Done, I recalculated the amounts", fixKept:"All right, I'll leave it",
   loadItem:"{q} of {i}", closeMe:"Close me", who:{m:"HandPod",u:"You"}, chatEmpty:"The conversation with HandPod appears here.",
   g:{allergen:"{i}: excluded by profile", incl:"{i}: max {m}%", mass:"Pod over {max}", fat:"Too much fat to compact", salt:"Too much salt for this profile", fibmin:"Too little fibre for this profile's diet", prot:"Too much protein for this profile", fiber:"Too much fibre to press", pair:"Flax and spent grain: too much", iso:"Too many isolates: it crumbles", single:"Needs another ingredient"},
   cls:{iso:"Protein isolates",conc:"Protein concentrates",flour:"Protein flours",cereal:"Grains and starches",veg:"Vegetables",fruit:"Fruit",nut:"Nuts and seeds",base:"Plant bases",analog:"Meat, fish and cheese flavours",herb:"Herbs",spice:"Spices",umami:"Condiments",sweet:"Sweet, cocoa and coffee",add:"Thickeners and additives"},
   /* nomi e descrittori degli ingredienti: vedi ING_TEXT nella tabella dati */
   alg:{glutine:"gluten",soia:"soy",lupino:"lupin",guscio:"tree nuts",arachidi:"peanuts",sesamo:"sesame",senape:"mustard",sedano:"celery"},
-  vLabel:{net:"Simulated voice · answer: go on without network", help:"Simulated voice · answer: want a hand", guide:"Simulated voice · Pod guide", decide:"Simulated voice · answer: confirm or change", listen:"Simulated voice · sentence for the device", create_name:"Simulated voice · answer: name", create_likes:"Simulated voice · answer: tastes", create_deep:"Simulated voice · answer: follow-up", create_mode:"Simulated voice · answer: full or quick", create_age:"Simulated voice · answer: age (fictitious)", create_weight:"Simulated voice · answer: weight (fictitious)", create_health:"Simulated voice · answer: allergies, intolerances, conditions (fictitious)", create_diet:"Simulated voice · answer: diet", create_refuse:"Simulated voice · answer: never-ingredients", create_clarify:"Simulated voice · answer: clarification", create_confirm:"Simulated voice · answer: confirm or correct", create_correct:"Simulated voice · answer: correction", slot_taste:"Simulated voice · answer: tastes for this moment", create_allergies:"Simulated voice · answer: allergies", rework:"Simulated voice · what to change", fix:"Simulated voice · answer: shall I fix it?", idle:"Simulated voice · conversation with HandPod"},
+  vLabel:{look:"Simulated voice · answer: look at the ingredients", choose:"Simulated voice · choice between proposals", recipe:"Simulated voice · recipe choice", net:"Simulated voice · answer: go on without network", help:"Simulated voice · answer: want a hand", guide:"Simulated voice · Pod guide", decide:"Simulated voice · answer: confirm or change", listen:"Simulated voice · sentence for the device", create_name:"Simulated voice · answer: name", create_likes:"Simulated voice · answer: tastes", create_deep:"Simulated voice · answer: follow-up", create_mode:"Simulated voice · answer: full or quick", create_age:"Simulated voice · answer: age (fictitious)", create_weight:"Simulated voice · answer: weight (fictitious)", create_health:"Simulated voice · answer: allergies, intolerances, conditions (fictitious)", create_diet:"Simulated voice · answer: diet", create_refuse:"Simulated voice · answer: never-ingredients", create_clarify:"Simulated voice · answer: clarification", create_confirm:"Simulated voice · answer: confirm or correct", create_correct:"Simulated voice · answer: correction", slot_taste:"Simulated voice · answer: tastes for this moment", create_allergies:"Simulated voice · answer: allergies", rework:"Simulated voice · what to change", fix:"Simulated voice · answer: shall I fix it?", idle:"Simulated voice · conversation with HandPod"},
   vSend:"Send", vPh:"E.g. something to keep me going until lunch, with that hazelnut note",
-  vHint:{net:"Answer «yes» to go on without network, «no» to go back to rest.", help:"«Yes»: the device guides you step by step. «No»: you choose the ingredients. Works offline.", guide:"Offline guide: «skip» moves to the next step, «stop» closes the guide.", decide:"«Yes» or «confirm» works as Confirm; «no», «let's change» or a request («tastier») works as Rework.", click:"Click anywhere on the screen to go on.", sens:"Fictitious data: used in the session and included in the exported log (test mode).", on:"The sentence goes to the remote model; the proposal is then checked in this page.", create:"The answer stays in this page.", off:"Offline, sentence understanding is not available: compose by tapping the screen.", wait:"Connecting to the model…", na:"Model not available in this view: compose by tapping the screen.", idle:"The field turns on when the device is waiting for an answer.", rework:"The new instruction revises the current proposal; it does not ask for a fresh one. Tap the screen to cancel.", reworkOff:"Offline the request cannot be rephrased in words; the composition stays editable ingredient by ingredient on the screen.", fix:"Answer «yes» and the local calculation applies the fix (works offline too); otherwise edit the ingredients yourself.", close:"Click anywhere on the screen to close the lid.", likesOn:"The answer goes into the profile; the follow-up question is written by the remote model.", slot:"The answer completes the profile for this moment; then the request goes on."},
+  vHint:{look:"«Yes» or «show me» opens the ingredients screen; «confirm» or «fine as it is» confirms anyway.", choose:"Tap a proposal, or say its number or name.", recipe:"Tap a recipe, or say its number or name. Recipe book stored on the device, no network.", net:"Answer «yes» to go on without network, «no» to go back to rest.", help:"«Step by step» (or «yes»): the guide. «Recipe»: the device's recipe book. «By myself» (or «no»): you choose. Works offline.", guide:"Offline guide: «skip» moves to the next step, «stop» closes the guide.", decide:"«Yes» or «confirm» works as Confirm; «no», «let's change» or a request («tastier») works as Rework.", click:"Click anywhere on the screen to go on.", sens:"Fictitious data: used in the session and included in the exported log (test mode).", on:"The sentence goes to the remote model; the proposal is then checked in this page.", create:"The answer stays in this page.", off:"Offline, sentence understanding is not available: compose by tapping the screen.", wait:"Connecting to the model…", na:"Model not available in this view: compose by tapping the screen.", idle:"The field turns on when the device is waiting for an answer.", rework:"The new instruction revises the current proposal; it does not ask for a fresh one. Tap the screen to cancel.", reworkOff:"Offline the request cannot be rephrased in words; the composition stays editable ingredient by ingredient on the screen.", fix:"Answer «yes» and the local calculation applies the fix (works offline too); otherwise edit the ingredients yourself.", close:"Click anywhere on the screen to close the lid.", likesOn:"The answer goes into the profile; the follow-up question is written by the remote model.", slot:"The answer completes the profile for this moment; then the request goes on."},
   pSession:"Session", pPid:"Participant", pScenario:"Scenario", pStart:"Started", pEvents:"Events", pPhase:"Phase",
   pTog:"Researcher panel", pImport:"Import session", pImportHint:"Load an exported JSON log: it resumes the same participant, the profiles and the conversation, and starts again from rest for a new Pod. If a session is open, export it first.", pImportOk:"Session resumed: {p}", pImportErr:"Invalid file: a JSON log exported by this prototype is needed.", pImportPartial:"Some profiles were logged without the full card: only name and base values were restored.", setupImport:"Resume a session from a JSON file", resumed:"Session resumed from file",
   pApi:"Model (website version)", apiProv:"Service", apiKey:"API key", apiTest:"Test", apiTesting:"Testing…", apiOk:"Connected: the model answers.", apiOdd:"The model answers, but not in the expected format: try another model.", apiNet:"The service does not answer from this page (network or browser block).", apiLimit:"Free limit reached: try again later or tomorrow.", apiModel:"Model not found: check the model name.", apiCredit:"No credit left on the service.", apiHttp:"The service answered with an error ({n}).", apiQuick:"Quick model", apiDef:"Balanced model", apiSave:"Save", apiForget:"Forget the key", apiSaved:"Key saved in this browser (…{k}).", apiNone:"No key: sentence translation is off, compose by tapping the screen.", apiNote:"The key stays only in this browser: it never enters the log or the site files. Use it only on your own computer.", apiBad:"The key was not accepted: check it.",
@@ -427,11 +433,11 @@ const STRINGS = {
   pExportNA:"Export not available in this view", pExportWait:"Preparing export…", pSaved:"Log saved", pDeclined:"Save cancelled", pExportErr:"Save failed",
   pNet:"Network", netOn:"Connected", netOff:"Disconnected", keep:"Keeps working", lose:"Lost",
   keepList:"Calculation and rebalancing · Constraints · Profiles and profile creation · Profile summary (local version) · Eating moments · Composing ingredient by ingredient with the step-by-step guide · Profile Pod database · Loading and preparation · Log", loseList:"Sentence understanding · Rework in words · The model's why line · Profile summary and clarification from the model · Card corrections read by the model",
-  pArch:"Where each function runs", archF:["Nutritional calculation, rebalancing, tbsp amounts","Safety constraints: allergies, intolerances, conditions, diet, refused ingredients, process limits","Calm constraint line with a proposed alternative","Profile creation questions and reading the answers (age, weight, health, diet, tastes by meal)","Recognising typed allergies, intolerances, conditions and diets","Answer checks and edge cases","Eating moment, greeting time, energy by moment","Expressive layer: faces, chat phrases, annotations","Bowl loading, closing, simulated preparation, Pod","Log, session export and import","Full or quick profile choice when local rules are not enough","Intent → formulation translation (and off-topic phrases)","Proposal rework","Recomputed why line","Profile summary and clarifying question","Card update after a clarification or correction"],
+  pArch:"Where each function runs", archF:["Nutritional calculation, rebalancing, tbsp amounts","Safety constraints: allergies, intolerances, conditions, diet, refused ingredients, process limits","Calm constraint line with a proposed alternative","Profile creation questions and reading the answers (age, weight, health, diet, tastes by meal)","Recognising typed allergies, intolerances, conditions and diets","Answer checks and edge cases","Eating moment, greeting time, energy by moment","Expressive layer: faces, chat phrases, annotations","Bowl loading, closing, simulated preparation, Pod","Log, session export and import","Full or quick profile choice when local rules are not enough","Intent → formulation translation (and off-topic phrases)","Proposal rework","Recomputed why line","Profile summary and clarifying question","Card update after a clarification or correction","Recipe book: ten base recipes stored on the device, filtered by profile and moment, amounts recalculated (no network needed)","Meal history: the profile's Pod database, preference to avoid the ingredients of the last 2, announcement and offer to make a dish again (no network needed)","Multiple proposals in guest mode (first request of the session)"],
   loc:"Local", rem:"Remote", active:"active", inactive:"inactive",
   declare:"Functions marked Remote use a remote model: inside Claude through Claude, on the website through the service chosen in the panel. Offline, the profile summary and card corrections switch to the local version; the other remote functions stop and composing happens by tapping the screen. In the architecture the thesis proposes, translation runs on the device, with the cloud only as a fallback: the prototype reproduces the split between local and remote functions, not on-device inference.", offlineLocal:"offline: local version", viaClaude:"via Claude",
   pExpr:"Face and state", noFace:"no face on this screen", pSim:"Declared timed simulations: loading the bowl after Confirm, one ingredient per participant click, and sequence 5-6 after the lid is closed (3.2 s per step).",
-  pProfiles:"Profiles", pDb:"Pod database", pDbEmpty:"no Pods yet", pDbMain:"main", pDbNote:"The next proposals for this profile avoid the main ingredients of the latest Pods.", pActive:"active", pName:"Name", pKcal:"kcal", pP:"Prot. %", pC:"Carb. %", pF:"Fat %", pLikes:"Tastes", pAlg:"Allergies", pExcl:"Excluded ingredients", none:"none", pAge:"Age", pWeight:"Weight", pIntol:"Intolerances", pCond:"Conditions affecting diet", pDiet:"Diet", pRefused:"Never-ingredients (a choice, not a restriction)", pFollow:"Follow-up", pMode:"Profile", modeQuick:"quick", modeFull:"full", unfilled:"not filled in", noneF:"none", years:"years", kg:"kg", pRules:"Active limits", alsoExcl:"also", pSens:"Test mode: the exported log contains the full profile. Use fictitious data.",
+  pProfiles:"Profiles", pDb:"Pod database", pDbEmpty:"no Pods yet", pDbMain:"main", pDbNote:"Proposals for this profile prefer to avoid the main ingredients of the last 2 Pods; when it leaves them out the device says so. From the third Pod on the greeting may offer to make a past dish again (only as a question).", pProposals:"Proposals: with a profile (full or quick) one proposal, the one the profile justifies. In guest mode, at the first request of the session, two or three alternatives: the device knows nothing about the person and the alternatives help find out what they fancy.", pActive:"active", pName:"Name", pKcal:"kcal", pP:"Prot. %", pC:"Carb. %", pF:"Fat %", pLikes:"Tastes", pAlg:"Allergies", pExcl:"Excluded ingredients", none:"none", pAge:"Age", pWeight:"Weight", pIntol:"Intolerances", pCond:"Conditions affecting diet", pDiet:"Diet", pRefused:"Never-ingredients (a choice, not a restriction)", pFollow:"Follow-up", pMode:"Profile", modeQuick:"quick", modeFull:"full", unfilled:"not filled in", noneF:"none", years:"years", kg:"kg", pRules:"Active limits", alsoExcl:"also", pSens:"Test mode: the exported log contains the full profile. Use fictitious data.",
   pTasteSlots:"Tastes by moment", pTier:"Remote model", tierQuick:"Quick (answers in a few seconds)", tierDefault:"Balanced (more accurate, slower)",
   pLook:"Settings", pCmf:"Shell", cmf:{greige:"Warm grey",black:"Black",ochre:"Ochre"}, pLang:"Language",
   setupTitle:"Navigable <em>prototype</em>", setupSub:"Enter the participant identifier and start. The session stays in this browser until you export the log.",
@@ -934,7 +940,18 @@ function slotInfo(){ const d=new Date(), real=realSlot(d); return {real, used:S.
 /* ora detta nel saluto: quella reale; se la fascia è forzata, un'ora plausibile per quella fascia (valori di progetto) */
 const SLOT_CLOCK={colazione:"8:00", pranzo:"13:00", merenda:"16:30", cena:"20:00", spuntino:"22:30"};
 const clock24=d=>d.getHours()+":"+String(d.getMinutes()).padStart(2,"0");
-function greeting(){ const p=prof(), d=new Date(), k=S.slotForced||realSlot(d), h=S.slotForced?SLOT_CLOCK[k]:clock24(d);
+/* dalla terza Pod dello stesso profilo il saluto può proporre di rifare un piatto già fatto: solo una domanda */
+function redoCandidate(p,k){ const pods=(p.pods||[]).filter(d=>d.title&&d.items&&d.items.length); if(p.key==="guest"||pods.length<2) return null;
+ const older=pods.slice(0,-DB_AVOID_LAST), same=x=>x.slot===k; return older.find(same)||pods.find(same)||older[0]||pods[0]; }
+function greeting(){ const p=prof(), d0=new Date(), k0=S.slotForced||realSlot(d0);
+ const gkey=S.profileKey+"|"+(S.listenSeq||0); if(!S.redoDone) S.redoDone={};
+ if(!S.redoDone[gkey]&&remoteReady()){ const rd=redoCandidate(p,k0); if(rd){ S.redoDone[gkey]=true; log("redo_offered",{profile:p.key, pod:rd.n, title:rd.title, slot:rd.slot});
+  return {text:p.name?T("redoQ",{n:p.name,t:rd.title}):T("redoQAnon",{t:rd.title}), extra:{greeting_slot:k0, redo_offer:rd.n}, redo:rd}; } }
+ return greetingPlain(); }
+function redoPod(rd){ const p=tprof(), raw=rd.items.map(x=>({id:x.id, grams:x.g})); S.reqSlot=rd.slot||null;
+ const v=verifyProposal(raw,p); v.guards.forEach(g=>log("guardrail_fired",{rule:g.rule, ids:g.ids, action:g.action, source:"redo"}));
+ log("redo_composition",{pod:rd.n, title:rd.title, items:v.items, corrections:v.corrections}); openComposition({source:"redo", items:v.items, title:rd.title, corrections:v.corrections, proposal:raw}); }
+function greetingPlain(){ const p=prof(), d=new Date(), k=S.slotForced||realSlot(d), h=S.slotForced?SLOT_CLOCK[k]:clock24(d);
  const head=p.name?T("listeningNamed",{n:p.name}):T("listening")+"?";
  return {text:head+" "+T("greetTime",{h, q:T("greetQ."+k)}), extra:{greeting_slot:k, clock_real:clock24(d), clock_shown:h, slot_forced:!!S.slotForced}}; }
 /* "cena", "a pranzo", "colazione"... nella richiesta: la macchina segue la persona e cambia fascia */
@@ -966,19 +983,19 @@ function buildLog(){
  const ev=s.events, end=s.ended||Date.now(), cnt=t=>ev.filter(e=>e.type===t).length;
  const confirms=ev.filter(e=>e.type==="confirm");
  return {
-  schema:"handpod-session-log/8", participant_id:s.pid, scenario:s.scenario, language:S.lang,
+  schema:"handpod-session-log/9", participant_id:s.pid, scenario:s.scenario, language:S.lang,
   started_at:new Date(s.t0).toISOString(), ended_at:s.ended?new Date(s.ended).toISOString():null, duration_ms:end-s.t0,
   targets_note:"Energy and macro split of each Pod come from the request (model) and are bounded locally around the profile; see targets_model/targets_used.", architecture:{nutritional_calculation:"local (page)", safety_constraints:"local (page): allergies, intolerances, conditions, diet, refused ingredients, process limits", guardrail_alternative:"local (page)",
    profile_creation:"local (page): questions, answer reading, tastes by meal (fixed snack question)", typed_health_reading:"local rules (page)", answer_checks_edge_cases:"local (page); off-topic requests also flagged by the model",
    eating_moment_and_greeting:"local (page clock or researcher override)", expressive_layer:"local (page)", loading_and_preparation:"local timed simulation", log_export_import:"local (page)",
-   profile_mode_choice:"local rules first; remote model only when they are not enough", profile_summary_and_clarification:"remote model; local summary offline", profile_card_update:"remote model; local rules offline",
+   profile_mode_choice:"local rules first; remote model only when they are not enough", profile_summary_and_clarification:"remote model; local summary offline", profile_card_update:"remote model; local rules offline", recipe_book:"local (page)", meal_history:"local (page): Pod database per profile; avoidance of the last 2 Pods' main ingredients is a preference passed to the model, the announcement and the redo offer are local", guest_multiple_proposals:"remote model (guest mode, first request of the session)", confirm_recognition:"local rules first, then the remote model during rework", pod_colour_variant:"local, deterministic from the composition",
    runtime:IN_CLAUDE?"claude.ai artifact (sample capability)":"standalone website ("+apiCfg().provider+", model "+modelFor(apiCfg(),"quick")+", researcher's key)",
    intent_translation:"remote model (prototype tool; the thesis places it on the device)", proposal_rework:"remote model", why_recompute:"remote model", model_tier:MODEL_TIER},
   declared_timed_simulations:["bowl loading after Confirm: each ingredient waits for the participant's click; the scoop pour lasts "+POUR_MS+" ms (layers without scoop under prefers-reduced-motion)","preparation sequence faces 5-6-7 after the participant closes the lid"], face_animation_note:"Each face loops its own animation while visible; which face is shown depends only on state (see faceFor). Face 4 is governed by S.activeFormulation: \"proposed\" (proposal found, screen 6.1) or \"loading\" (powders entering the bowl).",
   input_channel:"conversation card under the device simulating the spoken dialogue: every machine phrase is a chat message posted in the same render as the face change (chat_message.face_shown); the participant types their spoken replies",
   units_note:"Quantities are shown in tablespoons (tbsp, about 15 ml). Grams per level tbsp depend on the ingredient class (project values: "+JSON.stringify(TBSP_G)+", salt "+TBSP_SALT_G+"). Half-tbsp steps from 1 tbsp up, quarter steps below, pinches of "+PINCH_G+" g under 1/8 tbsp. Calculation and log values stay in grams; tbsp labels are added where they were shown.",
   data_status:"Table of 200 plant powders and flavours. Only the three protein classes and their thresholds come from section 3.3; every other class, every value per 100 g, inclusion limits, sensory notes, allergen assignment and process rules are project values, not source data.",
-  privacy_note:LOG_FULL_PROFILE?"Test mode: full profile data is exported (interviewees use fictitious data).":"Age, weight, allergies, intolerances and diet-related conditions are used in the session only; this log records whether each field was filled, never its content.",
+  privacy_note:LOG_FULL_PROFILE?"Test mode: full profile data is exported (interviewees enter real data; logs are pseudonymised before use).":"Age, weight, allergies, intolerances and diet-related conditions are used in the session only; this log records whether each field was filled, never its content.",
   profiles:Object.fromEntries(Object.values(S.profiles).map(p=>[p.key,profileForLog(p)])),
   summary:{
    profile_chosen: ev.filter(e=>e.type==="profile_selected").map(e=>({key:e.key, created:e.created})),
@@ -1140,6 +1157,8 @@ function faceFor(){
   case "create_done": return {n:7, v:`S.phase = "create_done"  (profilo salvato)`};
   case "listen": return {n:1, v:`S.phase = "listen"  (profilo attivo, in attesa di un comando)`};
   case "rework": return {n:3, v:`S.phase = "rework"  (rielaborazione richiesta, in attesa dell'indicazione)`};
+  case "choose": return {n:0, v:`S.phase = "choose"  (proposte alternative per l'ospite)`};
+  case "recipe": return {n:0, v:`S.phase = "recipe"  (ricettario locale)`};
   case "compose": if(S.ui.screen===0 && S.activeFormulation==="proposed") return {n:4, v:`S.activeFormulation = "proposed", S.ui.screen = 0`}; return {n:0, v:"—"};
  }
  return {n:0, v:"—"};
@@ -1167,7 +1186,7 @@ function allergyBlock(p){
 }
 function rulesLine(p){ const r=p.rules||{}; return `fat at most ${Math.round((r.fatMaxFrac??RULES.fatMaxFrac)*100)}% of mass; fibre at most ${r.fiberMax??RULES.fiberMax} g; isolates together at most 50% of mass${r.saltyMaxG!=null?`; salt and salty condiments together at most ${r.saltyMaxG} g`:""}${r.pPctMax!=null?`; protein at most ${r.pPctMax}% of energy`:""}${r.cPctMax!=null?`; carbohydrate at most ${r.cPctMax}% of energy`:""}`; }
 /* tabella compatta per il modello: una riga per ingrediente (id | nome | classe | P/C/F/fibre per 100 g | max % | note) */
-function ingLines(p){ return INGREDIENTS.filter(i=>!excludedBy(i.id,p)&&!(S.histAvoid&&S.histAvoid.has(i.id))).map(i=>`${i.id} | ${nm(i.id)} | ${i.cls} | ${i.P}/${i.C}/${i.F}/${i.Fib} | max ${i.max}% | ${T("sens."+i.id)}`).join("\n"); }
+function ingLines(p){ return INGREDIENTS.filter(i=>!excludedBy(i.id,p)).map(i=>`${i.id} | ${nm(i.id)} | ${i.cls} | ${i.P}/${i.C}/${i.F}/${i.Fib} | max ${i.max}% | ${T("sens."+i.id)}`).join("\n"); }
 function ingTable(p){ return INGREDIENTS.filter(i=>!excludedBy(i.id,p)).map(i=>({id:i.id,name:nm(i.id),class:i.cls,per100g:{protein:i.P,carbs:i.C,fat:i.F,fibre:i.Fib,kcal:i.kcal},max_inclusion_pct:i.max,sensory:T("sens."+i.id)})); }
 const tasteLine=p=>`${(p.tasteQ&&p.tasteA)?` Asked «${p.tasteQ}», they said: «${p.tasteA}».`:""}${p.age!=null?` Age: ${p.age}.`:""}${p.weight!=null?` Weight: ${p.weight} kg.`:""}`;
 function translatePrompt(phrase,p){
@@ -1216,6 +1235,10 @@ function errLine(e){ const c=e&&e.code;
  return T("failMsg"); }
 /* accetta id esatti oppure nomi degli ingredienti (in italiano o inglese): niente va perso per un'etichetta diversa */
 const NAME2ID=(()=>{ const m={}; for(const L of ["it","en"]) for(const id in STRINGS[L].ing) m[STRINGS[L].ing[id].toLowerCase()]=id; return m; })();
+function optionsPrompt(phrase,p){ return translatePrompt(phrase,p)+`
+
+GUEST MODE: the device knows nothing about this person's tastes. Instead of one dish, propose THREE clearly different dishes that each answer the request (different main ingredients and character, e.g. one fresher, one richer, one more unusual). Same rules for each dish as above. Reply with only one JSON object:
+{"targets":{"kcal":<number>,"protein_pct":<number>,"carbs_pct":<number>,"fat_pct":<number>},"options":[{"title":"<name>","why":"<one sentence>","items":[{"id":"<ingredient id>","grams":<integer>}]},{...},{...}]}`; }
 function normItems(r){
  const arr=Array.isArray(r&&r.items)?r.items:[];
  return arr.filter(x=>x&&typeof x==="object").map(x=>{ let id=String(x.id||x.name||"").trim(); if(!ING[id]) id=NAME2ID[id.toLowerCase()]||id; return {id, grams:x.grams??x.g??x.amount}; }).filter(x=>ING[x.id]).slice(0,12);
@@ -1223,8 +1246,9 @@ function normItems(r){
 async function askProposal(prompt,signal,fn){
  /* al massimo due tentativi: il secondo solo se il primo non contiene ingredienti utilizzabili (e non è un "non ho capito") */
  let r=await S.sample.json(prompt,{modelTier:MODEL_TIER_UI, signal, cache:false}); r=(r&&typeof r==="object")?r:{};
- if(r.understood===false) return {r,raw:[]};
+ if(r.understood===false||r.confirm===true) return {r,raw:[]};
  let raw=normItems(r);
+ if(!raw.length&&Array.isArray(r.options)&&r.options.length) return {r,raw:normItems(r.options[0])};
  if(!raw.length){ log("model_retry",{fn, reason:"no usable items", first_reply:r});
   r=await S.sample.json(prompt+"\n\nIMPORTANT: your previous reply had no usable items. Reply now with the JSON object and 3 to 6 items using only the listed ids.",{modelTier:MODEL_TIER_UI, signal, cache:false}); r=(r&&typeof r==="object")?r:{}; raw=normItems(r); }
  return {r,raw};
@@ -1235,7 +1259,8 @@ async function sendPhrase(phrase){
  S.pending="translate"; S.pendSeq++; S.phase="think"; const ctl=new AbortController(); S.ctl=ctl; render();
  log("model_request",{fn:"translate", location:"remote", model_tier:MODEL_TIER_UI, slot_real:slotInfo().real, slot_used:slotInfo().used, slot_forced:slotInfo().forced});
  let r, raw;
- try{ ({r,raw}=await askProposal(translatePrompt(phrase,prof()),ctl.signal,"translate")); }
+ S.guestOptions=prof().key==="guest"&&!S.session.guestOptionsDone; if(S.guestOptions){ S.session.guestOptionsDone=true; log("guest_options_requested",{}); }
+ try{ ({r,raw}=await askProposal(S.guestOptions?optionsPrompt(phrase,prof()):translatePrompt(phrase,prof()),ctl.signal,"translate")); }
  catch(e){ S.pending=null; S.ctl=null; S.phase="listen";
   if(e&&e.code==="cancelled"){ log("model_cancelled",{fn:"translate"}); render(); return; }
   log("model_error",{fn:"translate", code:e&&e.code}); S.line=errLine(e); if(S.line) edgeCase("listen","failure","call_failed",phrase,{fn:"translate"}); render(); return; }
@@ -1243,8 +1268,11 @@ async function sendPhrase(phrase){
  log("model_response",{fn:"translate", title:r.title, why:r.why, proposal:raw.map(x=>({id:x.id,grams:x.grams})), model_nutrition:r.nutrition||null});
  if(r.understood===false){ S.phase="listen"; S.line=null; notUnderstood("listen","model_off_topic",phrase); return; }
  if(!raw.length){ S.phase="listen"; S.line=T("failMsg"); edgeCase("listen","failure","malformed_or_empty",phrase,{fn:"translate"}); render(); return; }
- understood(); const tg=clampTargets(r.targets,prof());
-{ const rep=raw.filter(x=>S.histAvoid&&S.histAvoid.has(x.id)).map(x=>x.id); if(rep.length){ raw=raw.filter(x=>!rep.includes(x.id)); log("guardrail_fired",{rule:"db_repeat", ids:rep, action:"removed", source:"model"}); } }
+ understood();
+ if(Array.isArray(r.options)&&S.guestOptions){ const opts=r.options.map(o=>({title:String(o&&o.title||"").slice(0,60), why:String(o&&o.why||"").slice(0,160), raw:normItems(o)})).filter(o=>o.title&&o.raw.length>=3).slice(0,3);
+  if(opts.length>=2){ showOptions(r,opts,phrase); return; } log("guest_options_fallback",{valid:opts.length}); if(opts.length){ raw=opts[0].raw; r={...r, title:opts[0].title, why:opts[0].why}; } }
+ proposalFrom(r,raw,phrase); }
+function proposalFrom(r,raw,phrase,extraLog){ const tg=clampTargets(r.targets,prof());
  const v=verifyProposal(raw,{...prof(),...tg});
  log("local_verification",{corrections:v.corrections, guardrails:v.guards, local_totals:roundT(totals(v.items)), targets_model:r.targets||null, targets_used:tg});
  v.guards.forEach(g=>log("guardrail_fired",{rule:g.rule, ids:g.ids, action:g.action, source:"model_proposal"}));
@@ -1256,7 +1284,7 @@ async function sendPhrase(phrase){
  const noteWord=g.hit||(reqHit?reqHit.replace(/^(all'|dell'|l')/i,""):null)||(removed.length?removed.join(", "):null);
  if(reqHit){ log("guardrail_fired",{rule:"request_names_excluded", source:"request"}); edgeCase("listen","understood_cannot","request_names_excluded",phrase,{guardrail:"profile_exclusion", answered_by:"guardrail note in the proposal"}); }
  openComposition({source:"model", items:v.items, phrase, title:g.title, why:g.why, corrections:v.corrections, proposal:raw, targets:tg,
-  allergyNote:noteWord?T("allergyNote",{x:noteWord.toLowerCase()}):null});
+  allergyNote:noteWord?T("allergyNote",{x:noteWord.toLowerCase()}):null, histNote:histOutcome(r,v.items,"translate").note});
 }
 
 /* Vincolo locale sul testo: titolo e riga del perché non possono nominare un allergene dichiarato.
@@ -1308,6 +1336,7 @@ ${history}
 Your previous proposal: ${JSON.stringify({title:c.title, items:(c.proposal||[]).map(x=>({id:x.id,grams:x.grams}))})}
 Composition now on screen (after the device's check and the person's changes): ${JSON.stringify({title:c.title, items:onScreen, removed_by_person:removedByPerson})}
 NEW INSTRUCTION from the person: «${text}»
+If the instruction actually means the person is happy with the dish as it is and wants to keep it (for example «bene», «così va bene», «non cambiare niente»), reply only {"confirm":true}.
 If the new instruction is not about this dish or food at all, or it is nonsense, or written in a language other than Italian or English, reply only {"understood":false}.
 
 ${allergyBlock(p)}${histLine()}
@@ -1346,10 +1375,10 @@ async function sendRework(text){
   if(e&&e.code==="cancelled"){ log("model_cancelled",{fn:"rework", n:rw.n}); S.phase="compose"; S.rework=null; render(); return; }
   log("model_error",{fn:"rework", code:e&&e.code, n:rw.n}); const l=errLine(e); if(l) edgeCase("rework","failure","call_failed",text,{fn:"rework"}); S.phase=remoteReady()?"rework":"compose"; S.line=l; if(!remoteReady()){ c.reworkOff=true; say(T("reworkOff")); } render(); return; }
  S.pending=null; S.ctl=null;
+ if(r.confirm===true){ understood(); log("decide_answer",{act:"confirm", recognized:"model", via:"voice", from:"rework", text}); S.phase="compose"; S.rework=null; S.line=null; requestConfirm("voice_model"); return; }
  if(r.understood===false){ S.phase="rework"; S.line=null; notUnderstood("rework","model_off_topic",text); return; }
  if(!raw.length){ edgeCase("rework","failure","malformed_or_empty",text,{fn:"rework"}); S.phase="rework"; S.line=T("failMsg"); render(); return; }
  understood(); const tg=r.targets?clampTargets(r.targets,prof()):(c.targets||clampTargets(null,prof()));
-{ const rep=raw.filter(x=>S.histAvoid&&S.histAvoid.has(x.id)).map(x=>x.id); if(rep.length){ raw=raw.filter(x=>!rep.includes(x.id)); log("guardrail_fired",{rule:"db_repeat", ids:rep, action:"removed", source:"model"}); } }
  const v=verifyProposal(raw,{...prof(),...tg});
  v.guards.forEach(g=>log("guardrail_fired",{rule:g.rule, ids:g.ids, action:g.action, source:"model_rework"}));
  const prevItems=c.items.map(x=>({...x})), d=diffItems(prevItems,v.items), lockedKept=[...c.locked].filter(id=>{ const a=prevItems.find(x=>x.id===id), b=v.items.find(x=>x.id===id); return a&&b&&Math.abs(a.g-b.g)<2; });
@@ -1365,7 +1394,7 @@ async function sendRework(text){
  const removedR=v.corrections.filter(x=>x.kind==="removed_excluded").map(x=>nm(x.id));
  if(reqHit||removedR.length){ log("guardrail_fired",{rule:"request_names_excluded", source:"rework", removed:v.corrections.filter(x=>x.kind==="removed_excluded").map(x=>x.id)}); edgeCase("rework","understood_cannot","request_names_excluded",text,{guardrail:"profile_exclusion", answered_by:"guardrail note in the proposal"}); }
  const noteR=g.hit||(reqHit?reqHit.replace(/^(all'|dell'|l')/i,""):null)||(removedR.length?removedR.join(", "):null);
- openComposition({source:"model", items:v.items, phrase:c.phrase, title:g.title, why:g.why, allergyNote:noteR?T("allergyNote",{x:noteR.toLowerCase()}):null, corrections:v.corrections, proposal:raw, turns:[...c.turns,{role:"rework", text}], reworkN:rw.n, targets:tg});
+ openComposition({source:"model", items:v.items, phrase:c.phrase, title:g.title, why:g.why, histNote:histOutcome(r,v.items,"rework").note, allergyNote:noteR?T("allergyNote",{x:noteR.toLowerCase()}):null, corrections:v.corrections, proposal:raw, turns:[...c.turns,{role:"rework", text}], reworkN:rw.n, targets:tg});
 }
 async function fetchWhy(){
  const c=S.comp; if(!c||!remoteReady()||S.pending) return;
@@ -1385,11 +1414,14 @@ async function fetchWhy(){
 const roundT=t=>Object.fromEntries(Object.entries(t).map(([k,v])=>[k,Math.round(v*10)/10]));
 const sig=items=>items.filter(x=>x.g>0).map(x=>x.id).sort().join(",");
 let compSeq=0;
-function openComposition({source, items, phrase="", title="", why="", corrections=[], proposal=null, turns=null, reworkN=0, targets=null, allergyNote=null}){
+const PROPOSED=["model","recipe","redo"];
+function openComposition({source, items, phrase="", title="", why="", corrections=[], proposal=null, turns=null, reworkN=0, targets=null, allergyNote=null, histNote=null, recipe=null}){
  S.comp={id:"c"+(++compSeq), source, items:items.map(x=>({...x})), phrase, title, why, whyText:why, whySource:why?"translate":null, whySig:sig(items), whyOpen:false,
   turns: turns || (phrase?[{role:"request", text:phrase}]:[]), reworkN, reworkOff:false, targets, allergyNote, slot:slotInfo(),
-  corrections, proposal, edits:0, locked:new Set(), violKeys:new Set(), screens:source==="model"?[0,1,2]:[1,2], blocked:null, editSnap:null};
- if(source!=="manual") S.guide=null; S.phase="compose"; S.activeFormulation=source==="model"?"proposed":null; S.ui.screen=S.comp.screens[0]; S.ui.focus=0; S.ui.edit=null; S.ui.picker=source==="manual"; S.ui.pickCls=null; S.ui.pickFocus=1;
+  corrections, proposal, edits:0, locked:new Set(), violKeys:new Set(), screens:PROPOSED.includes(source)?[0,1,2]:[1,2], blocked:null, editSnap:null, histNote, recipe, sawIng:!PROPOSED.includes(source), lookAsked:false, lookAnswer:null};
+ S.lookAsk=null;
+ if(PROPOSED.includes(source)&&!S.session.ingHintShown){ S.comp.ingHint=true; S.session.ingHintShown=true; log("ingredients_hint_shown",{comp_id:S.comp.id}); }
+ if(source!=="manual") S.guide=null; S.phase="compose"; S.activeFormulation=PROPOSED.includes(source)?"proposed":null; S.ui.screen=S.comp.screens[0]; S.ui.focus=0; S.ui.edit=null; S.ui.picker=source==="manual"; S.ui.pickCls=null; S.ui.pickFocus=1;
  log("composition_shown",{comp_id:S.comp.id, source, items:S.comp.items, title, why, local_totals:roundT(totals(S.comp.items)), slot_real:S.comp.slot.real, slot_used:S.comp.slot.used, slot_forced:S.comp.slot.forced, slot_source:S.comp.slot.source, energy_target:tprof().kcal});
  trackViolations("composition"); render();
 }
@@ -1445,13 +1477,42 @@ function clearTimers(){ S.timers.forEach(clearTimeout); S.timers=[]; }
 /* DATABASE DELLE POD: ogni Pod confermata resta nella scheda del profilo. Gli ingredienti principali sono quelli
    che danno carattere al piatto (verdure, frutta, cereali, farine, frutta secca, aromi), almeno l'8% della massa, al massimo 3.
    Le proposte successive per lo stesso profilo li evitano (ultime 5 Pod), a meno che la richiesta non li nomini. */
-const MAIN_CLS=["veg","fruit","cereal","flour","nut","analog"], DB_AVOID_LAST=5;
+const MAIN_CLS=["veg","fruit","cereal","flour","nut","analog"], DB_AVOID_LAST=2;
 function podMain(items){ const t=massOf(items)||1; return items.filter(x=>x.g>0&&ING[x.id]&&MAIN_CLS.includes(ING[x.id].cls)&&x.g>=0.08*t).sort((a,b)=>b.g-a.g).slice(0,3).map(x=>x.id); }
 function histAvoid(p,text){ const named=new Set(namedIngredients(text||"").ids||[]); const ids=new Set();
  (p.pods||[]).slice(-DB_AVOID_LAST).forEach(d=>(d.main||[]).forEach(i=>{ if(!named.has(i)) ids.add(i); })); return ids; }
-function histLine(){ const a=[...(S.histAvoid||[])]; return a.length?`\nRECENT PODS of this person already used as main ingredients: ${a.map(nm).join(", ")}. They are removed from the list below: build a different dish, do not use or name them.`:""; }
-function confirmPod(){
- if(!canConfirm()) return; commitEdit(); const c=S.comp;
+function histLine(){ const a=[...(S.histAvoid||[])]; return a.length?`\nRECENT PODS: this person's last Pods already had these main ingredients: ${a.map(x=>x+" ("+nm(x)+")").join(", ")}. PREFER a dish without them, so the meals vary. This is a preference, not a ban: keep one only if the request really needs it or the targets cannot be met otherwise. Add to the JSON "avoided_for_history":[ids you left out for this reason that would otherwise have suited the request] (empty list if none).`:""; }
+const shortNm=id=>nm(id).replace(/\s+(in polvere|powder)$/i,"").toLowerCase();
+function histWhen(id){ const p=prof(), d=[...(p.pods||[])].reverse().find(x=>(x.main||[]).includes(id)); if(!d) return T("histWhen.before");
+ const a=new Date(d.at), n=new Date(), day=x=>new Date(x.getFullYear(),x.getMonth(),x.getDate()).getTime(), diff=Math.round((day(n)-day(a))/864e5);
+ return diff===0?T("histWhen.today"):diff===1?T("histWhen.yesterday"):T("histWhen.before"); }
+/* cosa la macchina dice di aver lasciato fuori: ciò che il modello dichiara, più gli ingredienti principali recenti che i gusti
+   della fascia nominano e che la proposta non contiene. Se non ha evitato niente, non dice niente. */
+function histOutcome(r,items,src){ const av=S.histAvoid||new Set(); if(!av.size) return {note:null, ids:[]};
+ const inC=new Set(items.filter(x=>x.g>0).map(x=>x.id)), rep=(Array.isArray(r&&r.avoided_for_history)?r.avoided_for_history:[]).map(x=>ING[x]?x:NAME2ID[String(x).toLowerCase()]).filter(x=>x&&av.has(x)&&!inC.has(x));
+ const taste=(prof().tastes||{})[slotInfo().used]||"", byTaste=(namedIngredients(taste).ids||[]).filter(x=>av.has(x)&&!inC.has(x));
+ const ids=[...new Set([...rep,...byTaste])].slice(0,2), used=[...av].filter(x=>inC.has(x));
+ const note=ids.length?T("histNote",{x:ids.map(shortNm).join(S.lang==="en"?" and ":" e "), q:histWhen(ids[0])}):null;
+ log("history_avoidance",{source:src, candidates:[...av], model_reported:rep, from_tastes:byTaste, announced:!!note, announced_ids:ids, kept_anyway:used}); return {note, ids}; }
+/* PRIMA DI CONFERMARE: se la schermata ingredienti di questa composizione non è mai stata aperta, la macchina
+   chiede una volta sola se la persona vuole guardarla. «Conferma comunque» procede senza insistere. */
+/* VARIANTE DI COLORE: deterministica dalla composizione (hash FNV-1a degli id e dei grammi arrotondati).
+   La stessa Pod dà sempre lo stesso colore; se la Pod precedente della sessione era diversa ma aveva lo stesso colore,
+   si passa alla variante successiva, così due Pod diverse consecutive non escono uguali. */
+function podSig(items){ return items.filter(x=>x.g>0).map(x=>x.id+":"+Math.round(x.g)).sort().join("|"); }
+function setPodVariant(c){ const sg=podSig(c.items); let h=0x811c9dc5; for(let i=0;i<sg.length;i++){ h^=sg.charCodeAt(i); h=Math.imul(h,16777619)>>>0; }
+ let v=h%POD_CROPS.length, from="hash of ingredient ids and grams"; const prev=S.session.lastPod;
+ if(prev&&prev.sig!==sg&&prev.variant===v){ v=(v+1)%POD_CROPS.length; from+=" (shifted: previous different Pod had the same colour)"; }
+ S.session.podVariant=v; S.session.lastPod={sig:sg, variant:v}; log("pod_variant",{variant:v+1, name:POD_CROPS[v].name, derived_from:from, hash:h, composition:sg}); }
+function requestConfirm(via){ if(!canConfirm()){ if(S.comp){ say(T("decideBlocked")); render(); } return; } const c=S.comp;
+ if(!c.sawIng&&!c.lookAsked){ c.lookAsked=true; S.lookAsk={via}; log("look_question",{comp_id:c.id, via}); say(T("lookQ")); render(); focusVoice(); return; }
+ confirmPod(via); }
+function lookAnswer(ans,via){ const c=S.comp; if(!S.lookAsk||!c) return; const first=S.lookAsk.via; S.lookAsk=null; c.lookAnswer=ans; log("look_answer",{comp_id:c.id, answer:ans, via});
+ if(ans==="look"){ goScreen(1,via==="swipe"?"swipe":"look_question",true); render(); return; } confirmPod(first==="button"?"button":first); }
+function confirmPod(via){
+ if(!canConfirm()) return; commitEdit(); const c=S.comp; S.lookAsk=null;
+ log("confirm_context",{comp_id:c.id, via:via||"button", recognized:/model/.test(via||"")?"model":(/local/.test(via||"")?"local":"button"), ing_screen_seen:!!c.sawIng, look_question:{asked:!!c.lookAsked, answer:c.lookAnswer||null}});
+ setPodVariant(c);
  { const p=prof(); p.pods=p.pods||[]; const d={n:p.pods.length+1, at:new Date().toISOString(), slot:slotInfo().used, title:c.title||null, source:c.source, main:podMain(c.items), items:c.items.filter(x=>x.g>0).map(x=>({id:x.id,g:x.g}))};
   p.pods.push(d); log("pod_saved_to_profile",{profile:p.key, n:d.n, main:d.main, title:d.title}); }
  log("confirm",{comp_id:c.id, source:c.source, origin:STRINGS.it.screens[S.ui.screen].slice(0,3), items:c.items.filter(x=>x.g>0), local_totals:roundT(totals(c.items)), edits:c.edits, title:c.title});
@@ -1501,7 +1562,7 @@ function showPod(){
  podEl.style.backgroundSize=`${POD_IMG.w/c.s*100}% ${POD_IMG.h/c.s*100}%`;
  podEl.style.backgroundPosition=`${c.x/(POD_IMG.w-c.s)*100}% ${c.y/(POD_IMG.h-c.s)*100}%`;
  device.classList.add("podded"); S.phase="done";
- log("pod_shown",{variant:v+1, of:4, name:c.name, crop:{x:c.x,y:c.y,w:c.s,h:c.s}, cycle:S.session.cycle});
+ log("pod_shown",{variant:v+1, of:4, name:c.name, derived_from:"composition hash (see pod_variant)", crop:{x:c.x,y:c.y,w:c.s,h:c.s}, cycle:S.session.cycle});
  render(); noteLine("endNote"); // la sessione resta aperta: la scheda di destra si apre da sola sui comandi di fine
  setTimeout(()=>{ if(S.phase!=="done"||!S.session||S.session.ended) return; if(!S.ui.panelOpen) setPanel(true,"auto_pod");
   setTimeout(()=>{ const eb=panel.querySelector(".endbox"); if(eb) eb.scrollIntoView({behavior:"smooth",block:"end"}); },460); },900);
@@ -1650,6 +1711,17 @@ function readNumber(t){ t=String(t||"").toLowerCase().replace(",","."); const d=
 const NAME_BAD=/^(che|cosa|come|non|perch|quando|dove|chi|ciao|boh|niente|nessun|sì|si|no|ok|what|how|why|hello|hi|yes)$/i;
 const TASTE_RE=/dolc|salat|amar|acid|aspr|piccant|spezi|sapor|gust|legger|sostanzios|croccant|morbid|cremos|fresc|cald|fredd|delicat|decis|intens|neutr|tostat|affumicat|frutt|verdur|ortagg|carne|pesce|pasta|riso|pane|formagg|cioccolat|caff|tè\b|latte|yogurt|uov|legum|cereal|zupp|insalat|dessert|semplic|mediterran|etnic|orient|indian|messican|giappones|mi piace|adoro|amo\b|preferisc|odio|non mi piace|sweet|salty|savou?ry|bitter|sour|spic|light|hearty|crunch|creamy|fresh|food|meal/i;
 const ANSWER_SHORT=/^(sì|si|no|ok|certo|a volte|spesso|sempre|mai|poco|molto|abbastanza|dipende|forse|yes|no|sometimes|often|always|never|maybe)\b/i;
+/* RICONOSCIMENTO LOCALE DELLE CONFERME (prima di qualunque chiamata al modello). Testo normalizzato: minuscole, senza accenti né punteggiatura. */
+const normT=t=>String(t||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^\p{L}\p{N}\s']/gu," ").replace(/\s+/g," ").trim();
+const DEC_CONFIRM_RE=/^(si|bene|benissimo|va bene|va benissimo|ok|okay|okey|confermo|conferma|confermiamo|perfetto|procedi|procediamo|andiamo|vai|certo|cosi va bene|va bene cosi|cosi e perfetto|lascia cosi|lascialo cosi|lasciamo cosi|mi va bene|mi piace|non cambiare niente|non cambiare nulla|non cambiamo niente|non cambiamo nulla|niente da cambiare|e ok|e perfetto|e giusto|yes|sure|confirm|go ahead|perfect|fine|looks good|keep it|leave it)(?: (.*))?$/;
+const REJECT_RE=/^(no|no grazie|non mi piace|non mi va|non mi convince|non mi ispira|nah|cambiamo|cambia|cambiare|cambiala|rielabora|modifica|modifichiamo|change|rework|lets change|let's change|i don't like it|i dont like it)(?: (.*))?$/;
+const FILLER_RE=/^(grazie|thanks|thank you|allora|dai|pure|proprio|per niente|affatto|tanto|cosi|ora|adesso)( .*)?$/;
+/* {act:"confirm"} | {act:"reject"} (rifiuto senza contenuto) | {act:"rework", text} | {act:"unclear"} */
+function readDecision(raw){ const t=normT(raw); if(!t) return {act:"unclear"};
+ let m=t.match(DEC_CONFIRM_RE); if(m){ const rest=m[2]||""; const but=rest.match(/^(?:ma|pero|però|but)\s+(.+)$/); if(but&&/\p{L}{3}/u.test(but[1])) return {act:"rework", text:String(raw).trim()}; return {act:"confirm"}; }
+ m=t.match(REJECT_RE); if(m){ const rest=(m[2]||"").trim(); if(!rest||FILLER_RE.test(rest)||!/\p{L}{3}/u.test(rest)) return {act:"reject"}; return {act:"rework", text:String(raw).trim()}; }
+ if(/^(boh+|mah+|bah|uhm+|ehm+|eh|mh+|hmm+|non so|non lo so|dunno|i don't know)\b/.test(t)) return {act:"unclear"};
+ if(/\p{L}{3}/u.test(t)) return {act:"rework", text:String(raw).trim()}; return {act:"unclear"}; }
 /* "Confermi o cambiamo qualcosa?": sì = Conferma; no/cambiamo = Rielabora; una richiesta concreta = Rielabora con quella richiesta */
 const DECIDE_YES=/^\s*(s[iì]|ok|okay|va bene|confermo|conferma|confermiamo|perfetto|procedi|andiamo|vai|certo|yes|sure|confirm|go ahead|perfect)(?=$|[\s,.!])/i;
 const DECIDE_NO=/^\s*(no|cambiamo|cambia|cambiare|rielabora|modifica|modifichiamo|change|rework|let'?s change)(?=$|[\s,.!])/i;
@@ -1691,7 +1763,7 @@ function notUnderstood(phase,reason,input){
  S.miss=S.miss.phase===phase?{phase,n:S.miss.n+1}:{phase,n:1};
  const reformulate=S.miss.n>=3&&STRINGS[S.lang].reask[phase];
  /* prima e seconda volta: la frase fissa; dalla terza: la domanda riformulata con un esempio */
- say(reformulate?T("reask."+phase,{s:S.slotAsk?cap(T("slotsAt."+S.slotAsk.slot)):""}):T("notU"));
+ say(reformulate?T("reask."+phase,{s:S.slotAsk?cap(T("slotsAt."+S.slotAsk.slot)):""}):((phase==="decide"||phase==="rework")?T("decideNotU"):T("notU")));
  edgeCase(phase,"not_understood",reason,input,{consecutive:S.miss.n, response:reformulate?"reformulated_question":"notU"});
  render(); focusVoice();
 }
@@ -1987,8 +2059,49 @@ const guideStep=()=>S.guide&&S.guide.steps[S.guide.i];
 function guideSay(){ const st=guideStep(); if(!st){ say(T("guideEnd")); log("guide_done",{steps:S.guide.steps.length}); S.guide=null; return; }
  say(GUIDE_TXT[S.lang==="en"?"en":"it"][st.k]); log("guide_step",{step:S.guide.i+1, of:S.guide.steps.length, key:st.k, classes:st.cls}); }
 function guideNext(reason){ if(!S.guide) return; log("guide_advance",{from:guideStep().k, reason}); S.guide.i++; guideSay(); }
-function goRest(why){ commitEdit(); clearTimers(); if(S.ctl) S.ctl.abort(); S.activeFormulation=null; S.phase="rest"; S.comp=null; S.line=null; S.profileKey=null; S.fixOffer=null; S.load=null; S.prep.step=-1; S.draft=null; S.guide=null; S.netAsk=null; S.rework=null;
+function goRest(why){ commitEdit(); clearTimers(); if(S.ctl) S.ctl.abort(); S.activeFormulation=null; S.phase="rest"; S.comp=null; S.line=null; S.profileKey=null; S.fixOffer=null; S.load=null; S.prep.step=-1; S.draft=null; S.guide=null; S.netAsk=null; S.rework=null; S.choice=null; S.recipes=null; S.lookAsk=null;
  log("back_to_rest",{why}); render(); }
+/* SCELTA FRA PIÙ PROPOSTE (ospite) e FRA RICETTE: stessa lista sullo schermo, scelta con un tocco, col numero o col nome. */
+const ORD_RE=[/^(1|uno|una|la prima|il primo|prima|primo|first|the first|one)\b/,/^(2|due|la seconda|il secondo|seconda|secondo|second|the second|two)\b/,/^(3|tre|la terza|il terzo|terza|terzo|third|the third|three)\b/,/^(4|quattro|la quarta|quarta|fourth)\b/,/^(5|cinque|la quinta|quinta|fifth)\b/,/^(6|sei|la sesta|sesta|sixth)\b/];
+function pickIndex(raw,titles){ const t=normT(raw).replace(/^(vorrei|voglio|prendo|scelgo|dammi|facciamo|la|il|quella|quello|i'll take|i want)\s+/,""); if(!t) return -1;
+ for(let i=0;i<titles.length&&i<ORD_RE.length;i++) if(ORD_RE[i].test(t)) return i;
+ let best=-1, sc=0; titles.forEach((ti,i)=>{ const w=normT(ti).split(" ").filter(x=>x.length>=4); const n=w.filter(x=>t.includes(x.slice(0,Math.max(4,x.length-1)))).length; if(n>sc){ sc=n; best=i; } }); return best; }
+const mainOf=items=>{ const t=[...items].filter(x=>(x.grams??x.g)>0&&ING[x.id]&&!["herb","spice","umami","add"].includes(ING[x.id].cls)).sort((a,b)=>(b.grams??b.g)-(a.grams??a.g)); return t.slice(0,3).map(x=>x.id); };
+function showOptions(r,opts,phrase){ opts.forEach(o=>o.main=mainOf(o.raw)); S.choice={opts, r, phrase}; S.phase="choose";
+ log("guest_options_offered",{options:opts.map((o,i)=>({n:i+1, title:o.title, why:o.why, main:o.main, items:o.raw}))});
+ say(T("guestOpts",{n:T("nWays."+opts.length)})); opts.forEach((o,i)=>say(T("optLine",{i:i+1,t:o.title,w:o.why||o.main.map(shortNm).join(", ")}))); render(); focusVoice(); }
+function pickOption(i,via){ const ch=S.choice, o=ch&&ch.opts[i]; if(!o) return; log("guest_option_chosen",{n:i+1, title:o.title, via}); S.choice=null; S.guestOptions=false;
+ proposalFrom({...ch.r, title:o.title, why:o.why}, o.raw, ch.phrase); }
+function listHTML(rows,attr){ return `<div class="wl scroll optl" data-keep="optl${attr}" style="top:13cqh;height:58cqh;left:13cqw;right:13cqw">${rows.map((o,i)=>`<button class="opt" data-${attr}="${i}" type="button"><span class="ot">${i+1}. ${esc(o.t)}</span>${o.w?`<span class="ow">${esc(o.w)}</span>`:""}<span class="om">${esc(o.m)}</span></button>`).join("")}</div>`; }
+function choiceView(){ if(S.phase==="choose") return {key:"choose", html:listHTML(S.choice.opts.map(o=>({t:o.title, w:o.why, m:o.main.map(shortNm).join(" · ")})),"opt")};
+ return {key:"recipes", html:listHTML(S.recipes.list.map(r=>({t:recipeName(r), w:null, m:mainOf(r.items.map(x=>({id:x.id,g:x.pct}))).map(shortNm).join(" · ")})),"rcp")}; }
+/* RICETTARIO LOCALE: dieci ricette base salvate nel dispositivo (proporzioni in % della massa della Pod).
+   VALORI DI PROGETTO: ricette pensate per il prototipo, non chieste al modello. */
+const RECIPES=[
+ {id:"r_porridge", it:"Porridge di avena e mela", en:"Oat and apple porridge", slots:["colazione","merenda"], items:[{id:"ce_oatflakes",pct:40},{id:"iso_rice",pct:20},{id:"fr_apple",pct:18},{id:"ba_oatm",pct:15},{id:"nt_almond",pct:5},{id:"ar_cinnamon",pct:2}]},
+ {id:"r_cocoa", it:"Crema al cacao e nocciola", en:"Cocoa and hazelnut cream", slots:["colazione","merenda","spuntino"], items:[{id:"ce_oatflakes",pct:35},{id:"iso_pea",pct:25},{id:"ba_oatm",pct:20},{id:"nt_hazel",pct:10},{id:"bs_cocoa",pct:7},{id:"sw_coconut",pct:3}]},
+ {id:"r_berries", it:"Yogurt ai frutti rossi", en:"Red berry yogurt", slots:["colazione","merenda"], items:[{id:"ce_oatflakes",pct:40},{id:"iso_rice",pct:20},{id:"ba_yog",pct:15},{id:"fr_straw",pct:12},{id:"fr_rasp",pct:10},{id:"nt_chia",pct:3}]},
+ {id:"r_dates", it:"Barretta ai datteri e arachidi", en:"Date and peanut bar", slots:["merenda","spuntino","colazione"], items:[{id:"ce_oatflakes",pct:40},{id:"iso_pea",pct:20},{id:"fr_date",pct:18},{id:"nt_peanut",pct:12},{id:"nt_almond",pct:8},{id:"ar_cinnamon",pct:2}]},
+ {id:"r_tomato", it:"Pasta al pomodoro e basilico", en:"Tomato and basil pasta", slots:["pranzo","cena"], items:[{id:"ce_semola",pct:55},{id:"iso_pea",pct:25},{id:"bs_tomato",pct:10},{id:"ba_oliveoil",pct:6},{id:"hb_basil",pct:2},{id:"ar_garlic",pct:1},{id:"ar_salt",pct:1}]},
+ {id:"r_mushroom", it:"Risotto ai funghi", en:"Mushroom risotto", slots:["pranzo","cena"], items:[{id:"ce_ricewhole",pct:50},{id:"conc_pea",pct:22},{id:"bs_mush",pct:8},{id:"vg_porcini",pct:6},{id:"ba_oliveoil",pct:6},{id:"um_stock",pct:4},{id:"hb_parsley",pct:2},{id:"sp_pepper",pct:1},{id:"ar_salt",pct:1}]},
+ {id:"r_pumpkin", it:"Vellutata di zucca e zenzero", en:"Pumpkin and ginger soup", slots:["pranzo","cena"], items:[{id:"bs_potato",pct:30},{id:"vg_pumpkin",pct:25},{id:"iso_pea",pct:25},{id:"ba_coconutm",pct:10},{id:"vg_carrot",pct:7},{id:"sp_ginger",pct:2},{id:"ar_salt",pct:1}]},
+ {id:"r_hummus", it:"Hummus di ceci al limone", en:"Lemon chickpea hummus", slots:["pranzo","cena","merenda"], items:[{id:"fl_chick",pct:45},{id:"iso_chick",pct:20},{id:"ce_couscous",pct:20},{id:"nt_sesame",pct:8},{id:"ba_oliveoil",pct:5},{id:"ar_lemon",pct:1},{id:"sp_cumin",pct:1}]},
+ {id:"r_couscous", it:"Couscous alle verdure", en:"Vegetable couscous", slots:["pranzo","cena"], items:[{id:"ce_couscous",pct:45},{id:"iso_fava",pct:20},{id:"vg_carrot",pct:10},{id:"vg_zucchini",pct:10},{id:"vg_pepper",pct:8},{id:"ba_oliveoil",pct:5},{id:"sp_curry",pct:1},{id:"ar_salt",pct:1}]},
+ {id:"r_lentil", it:"Minestra di lenticchie e orzo", en:"Lentil and barley soup", slots:["cena","pranzo","spuntino"], items:[{id:"fl_lentil",pct:40},{id:"ce_barley",pct:25},{id:"conc_lentil",pct:20},{id:"vg_carrot",pct:8},{id:"vg_celery",pct:3},{id:"um_stock",pct:2},{id:"sp_cumin",pct:1},{id:"ar_salt",pct:1}]}];
+const recipeName=r=>r[S.lang==="en"?"en":"it"];
+function openRecipes(){ const p=tprof(), k=slotInfo().used, hidden=[], fitP=[];
+ for(const r of RECIPES){ const bad=r.items.map(x=>({id:x.id, why:excludedBy(x.id,p)})).filter(x=>x.why); if(bad.length){ hidden.push({id:r.id, reason:"profile", ingredients:bad.map(x=>x.id)}); continue; } fitP.push(r); }
+ let list=fitP.filter(r=>r.slots.includes(k)); fitP.filter(r=>!r.slots.includes(k)).forEach(r=>hidden.push({id:r.id, reason:"moment", slot:k}));
+ let msg=T("recipesQ"); if(!list.length&&fitP.length){ list=fitP; msg=T("recipesOther"); }
+ log("recipe_book_filtered",{slot:k, shown:list.map(r=>r.id), hidden, source:"local (page)"});
+ if(!list.length){ say(T("recipesNone")); startManual(false); return; }
+ S.recipes={list}; S.phase="recipe"; say(msg); list.forEach((r,i)=>say(T("recipeLine",{i:i+1,t:recipeName(r)}))); render(); focusVoice(); }
+function pickRecipe(i,via){ const r=S.recipes&&S.recipes.list[i]; if(!r) return; const p=tprof();
+ const E=r.items.reduce((a,x)=>a+x.pct/100*(ING[x.id].kcal!=null?ING[x.id].kcal:(4*ING[x.id].P+4*ING[x.id].C+9*ING[x.id].F)),0)||350;
+ const M=Math.max(RULES.massMin,Math.min(RULES.massMax,Math.round(p.kcal/E*100))), raw=r.items.map(x=>({id:x.id, grams:Math.round(x.pct/100*M*10)/10}));
+ const v=verifyProposal(raw,p); v.guards.forEach(g=>log("guardrail_fired",{rule:g.rule, ids:g.ids, action:g.action, source:"recipe"}));
+ log("recipe_chosen",{recipe:r.id, name:recipeName(r), via, mass_g:M, items:raw, after_check:v.items, corrections:v.corrections, source:"local (page)"}); S.recipes=null;
+ openComposition({source:"recipe", items:v.items, title:recipeName(r), corrections:v.corrections, proposal:raw, recipe:r.id}); }
 function startManual(guide){ S.line=null; S.guide=null; openComposition({source:"manual", items:[]});
  if(guide){ S.guide={i:0, steps:guideSteps()}; log("guide_start",{slot:slotInfo().used}); say(T("guideIntro")); guideSay(); }
  else { if(guide===false){ say(T("helpNo")); log("guide_declined",{}); } sayMissing(); }
@@ -2046,6 +2159,7 @@ function renderScreen(){
  let key="", html="";
  if(P==="profile"){ key="profile"; html=profileHTML(); }
  else if(P==="compose"){ const k=composeView(); key=k.key; html=k.html; }
+ else if(P==="choose"||P==="recipe"){ const k=choiceView(); key=k.key; html=k.html; }
  setContent(key,html); requestAnimationFrame(fitText);
 }
 /* posizioni della ciotola e del device affiancati; se lo spazio non basta l'insieme si riduce */
@@ -2079,12 +2193,12 @@ function stateMsg(){
   case "create_confirm": return {sig:P+"|"+S.draft.id+"|"+S.draft.sumVer, once:true, pre:[S.draft.summary], text:T("confirmQ")};
   case "create_correct": return {sig:P+"|"+S.draft.id, once:true, text:T("askCorrect")};
   case "create_done": return {sig:P+"|"+S.newKey, pre:(S.draft&&S.draft.finalSummary)?[S.draft.finalSummary]:[], text:T("allReady")};
-  case "listen": { if(S.line) return {sig:"listen|"+S.line, text:S.line}; if(!remoteReady()) return {sig:"listen|off|"+S.lang+"|"+(S.listenSeq||0), text:(prof()&&prof().name?(S.lang==="en"?"Hey ":"Hey ")+prof().name+", "+T("helpQ").charAt(0).toLowerCase()+T("helpQ").slice(1):T("helpQ"))};
+  case "listen": { if(S.line) return {sig:"listen|"+S.line, text:S.line}; if(!remoteReady()) return {sig:"listen|off|"+S.lang+"|"+(S.listenSeq||0), text:(prof()&&prof().name?"Hey "+prof().name+", "+T("helpQ").charAt(0).toLowerCase()+T("helpQ").slice(1):T("helpQ")), after:[T("helpWays")]};
    /* il saluto si calcola una volta per ingresso nell'ascolto: l'ora non cambia a ogni ridisegno */
    const gk=S.profileKey+"|"+S.slotForced+"|"+S.lang+"|"+(S.listenSeq||0); if(!S.greet||S.greet.key!==gk){ S.greet={key:gk, ...greeting()}; }
-   return {sig:"listen|"+gk, text:S.greet.text, extra:S.greet.extra}; }
+   return {sig:"listen|"+gk+(S.greet.redo?"|redo":"|plain"), text:S.greet.text, extra:S.greet.extra}; }
   case "rework": { const t=S.line||T("reworkAsk"); return {sig:"rework|"+t, text:t}; }
-  case "compose": { const c=S.comp; return (c&&S.activeFormulation==="proposed")?{sig:"compose|"+c.id, once:true, note:"swipeNote", after:[T("decideQ")], text:composeMsg(c), logText:(c.allergyNote&&!LOG_FULL_PROFILE)?composeMsg({...c,allergyNote:null})+" [nota sul profilo non registrata]":null}:null; }
+  case "compose": { const c=S.comp; return (c&&S.activeFormulation==="proposed")?{sig:"compose|"+c.id, once:true, note:"swipeNote", after:[c.histNote,c.ingHint?T("ingHint"):null,T("decideQ")].filter(Boolean), text:composeMsg(c), logText:(c.allergyNote&&!LOG_FULL_PROFILE)?composeMsg({...c,allergyNote:null})+" [nota sul profilo non registrata]":null}:null; }
   case "close_wait": return {sig:"close_wait|"+(S.load&&S.load.id), once:true, text:T("closeMe"), click:true};
   case "prep": case "done": return {sig:"prep|"+(S.load&&S.load.id)+"|"+S.prep.step, once:true, text:[T("mixing"),T("pressing"),T("ready")][S.prep.step]||T("ready"), click:S.prep.step===2};
  }
@@ -2198,7 +2312,7 @@ function scrollList(steps){
  render();
 }
 function goScreen(to,via,abs){ const c=S.comp; if(!c) return; c.reworkOff=false; const i=c.screens.indexOf(S.ui.screen), j=abs?c.screens.indexOf(to):i+to; if(j<0||j>=c.screens.length||j===i) return;
- commitEdit(); c.blocked=null; const from=S.ui.screen; S.ui.screen=c.screens[j]; S.ui.picker=false; log("screen_view",{from, to:S.ui.screen, via}); render(); }
+ commitEdit(); c.blocked=null; const from=S.ui.screen; S.ui.screen=c.screens[j]; S.ui.picker=false; if(S.ui.screen===1) c.sawIng=true; log("screen_view",{from, to:S.ui.screen, via}); if(S.lookAsk&&S.ui.screen===1){ S.lookAsk=null; c.lookAnswer="look"; log("look_answer",{comp_id:c.id, answer:"look", via}); } render(); }
 /* chiusura del coperchio: un clic in un punto qualsiasi dello schermo (fuori dalla conversazione), solo quando la macchina lo ha chiesto */
 /* clic di attesa (versare, richiudere, prendere la Pod): in un punto qualsiasi dello schermo fuori dalla conversazione e dal pannello.
    Un clic nato prima dell'attesa (es. lo stesso clic su Conferma) non conta. */
@@ -2206,7 +2320,7 @@ function goScreen(to,via,abs){ const c=S.comp; if(!c) return; c.reworkOff=false;
    conversazione, dal pannello e dalla sua freccia. Il riposo, il saluto, il profilo appena creato e il "Tocca per comporre"
    senza rete passano da tapScreen; un clic sullo schermo del device lo gestisce già il suo ascoltatore. */
 function TAP_PHASES(){ return S.phase==="rest"||S.phase==="greet"||S.phase==="create_done"||(S.phase==="listen"&&!remoteReady()&&!S.pending); }
-document.addEventListener("click",e=>{ if(S.netAsk||!S.session||S.session.ended||e.target.closest(".voice,.panel,.panelWrap,.ptog,.setup,.chatcol")) return; if(S.waitSince!=null&&e.timeStamp<S.waitSince) return;
+document.addEventListener("click",e=>{ if(!e.target.isConnected||S.netAsk||!S.session||S.session.ended||e.target.closest(".voice,.panel,.panelWrap,.ptog,.setup,.chatcol")) return; if(S.waitSince!=null&&e.timeStamp<S.waitSince) return;
  if(S.phase==="load"&&S.load&&S.load.waiting) pourCurrent(); else if(S.phase==="close_wait") closeLid(); else if(S.phase==="prep"&&S.prep.waitPod) showPod();
  else if(TAP_PHASES()&&!e.target.closest("#screen")){ S.waitSince=null; tapScreen(); } });
 screen.addEventListener("click",e=>{
@@ -2215,6 +2329,8 @@ screen.addEventListener("click",e=>{
  const b=e.target.closest("button");
  if(!b){ tapScreen(); return; }
  if(b.dataset.prof){ pickProfile(b.dataset.prof); return; }
+ if(b.dataset.opt!=null&&S.phase==="choose"){ pickOption(+b.dataset.opt,"touch"); return; }
+ if(b.dataset.rcp!=null&&S.phase==="recipe"){ pickRecipe(+b.dataset.rcp,"touch"); return; }
  if(b.dataset.go!=null){ goScreen(+b.dataset.go,"dots",true); return; }
  if(b.dataset.pm){ adjust(S.ui.edit,+b.dataset.pm,"buttons"); return; }
  if(b.dataset.pick!=null){ const L=pickerList(), i=+b.dataset.pick, r=L[i]; if(!r) return;
@@ -2227,7 +2343,7 @@ screen.addEventListener("click",e=>{
   const id=c.items[i].id; if(S.ui.edit===id){ commitEdit(); S.ui.focus=i; render(); return; }
   commitEdit(); S.ui.focus=i; S.ui.edit=id; log("edit_open",{ingredient:id, via:"touch"}); render(); return; }
  const a=b.dataset.act;
- if(a==="confirm") confirmPod();
+ if(a==="confirm"){ if(S.lookAsk) lookAnswer("confirm_anyway","button"); else requestConfirm("button"); }
  else if(a==="rework") startRework();
  else if(a==="fix"){ const v=curViol()[0]; if(v) applyFix(v); }
  else if(a==="why"){ const c=S.comp;
@@ -2241,13 +2357,13 @@ document.addEventListener("keydown",e=>{ if(e.target.tagName==="INPUT"||e.target
 /* ---------------- 14. VOCE SIMULATA (scheda sotto il dispositivo) ---------------- */
 const voiceForm=document.getElementById("voiceForm"), voiceIn=document.getElementById("voiceIn");
 const voiceMode=()=>{ if(!S.session||S.session.ended) return "idle"; if(S.netAsk) return "net"; if(S.phase==="listen") return remoteReady()?"listen":(S.pending?"off":"help"); if(S.phase==="compose"&&S.guide&&!S.fixOffer&&!S.pending) return "guide"; if(S.phase==="rework") return "rework"; if(S.phase.startsWith("create_")&&S.phase!=="create_done"&&S.phase!=="create_summary") return S.phase; if(S.phase==="slot_taste") return "slot_taste";
- if(S.phase==="compose"&&S.fixOffer&&!S.pending) return "fix"; if(S.phase==="compose"&&S.comp&&S.activeFormulation==="proposed"&&!S.pending&&!S.ui.picker) return "decide"; if(S.phase==="close_wait") return "close"; if((S.phase==="load"&&S.load&&S.load.waiting)||(S.phase==="prep"&&S.prep.waitPod)) return "click"; return "idle"; };
+ if(S.phase==="compose"&&S.fixOffer&&!S.pending) return "fix"; if(S.phase==="compose"&&S.lookAsk&&!S.pending) return "look"; if(S.phase==="compose"&&S.comp&&S.activeFormulation==="proposed"&&!S.pending&&!S.ui.picker) return "decide"; if(S.phase==="choose") return "choose"; if(S.phase==="recipe") return "recipe"; if(S.phase==="close_wait") return "close"; if((S.phase==="load"&&S.load&&S.load.waiting)||(S.phase==="prep"&&S.prep.waitPod)) return "click"; return "idle"; };
 function renderVoice(){
  document.getElementById("offBadge").hidden=remoteReady();
  const m=voiceMode(), on=!["idle","off","close","click"].includes(m)&&!S.pending;
  document.getElementById("voiceLabel").textContent=T("vLabel."+(m==="off"?"listen":(m==="close"||m==="click"?"idle":m)));
  voiceIn.placeholder=m==="listen"?T("vPh"):""; voiceIn.disabled=!on; document.getElementById("voiceSend").disabled=!on; document.getElementById("voiceSend").textContent=T("vSend");
- let h; if(["net","help","guide","decide"].includes(m)) h=T("vHint."+m); else if(m==="listen") h=T("vHint.on"); else if(m==="rework") h=T("vHint.rework"); else if(m==="fix") h=T("vHint.fix"); else if(m==="close") h=T("vHint.close"); else if(m==="click") h=T("vHint.click"); else if(m==="create_likes"&&remoteReady()) h=T("vHint.likesOn"); else if(m==="slot_taste") h=T("vHint.slot"); else if(SENS_PHASES.includes(m)&&m!=="create_diet") h=T("vHint.sens"); else if(S.comp&&S.comp.reworkOff) h=T("vHint.reworkOff"); else if(m.startsWith("create")) h=T("vHint.create"); else if(m==="off") h=!S.online?T("vHint.off"):(S.sample===undefined?T("vHint.wait"):T("vHint.na")); else h=T("vHint.idle");
+ let h; if(["net","help","guide","decide","look","choose","recipe"].includes(m)) h=T("vHint."+m); else if(m==="listen") h=T("vHint.on"); else if(m==="rework") h=T("vHint.rework"); else if(m==="fix") h=T("vHint.fix"); else if(m==="close") h=T("vHint.close"); else if(m==="click") h=T("vHint.click"); else if(m==="create_likes"&&remoteReady()) h=T("vHint.likesOn"); else if(m==="slot_taste") h=T("vHint.slot"); else if(SENS_PHASES.includes(m)&&m!=="create_diet") h=T("vHint.sens"); else if(S.comp&&S.comp.reworkOff) h=T("vHint.reworkOff"); else if(m.startsWith("create")) h=T("vHint.create"); else if(m==="off") h=!S.online?T("vHint.off"):(S.sample===undefined?T("vHint.wait"):T("vHint.na")); else h=T("vHint.idle");
  document.getElementById("voiceHint").textContent=h;
 }
 function focusVoice(){ setTimeout(()=>{ if(!voiceIn.disabled) voiceIn.focus({preventScroll:true}); },0); }
@@ -2261,20 +2377,36 @@ voiceForm.addEventListener("submit",e=>{ e.preventDefault(); const v=voiceIn.val
   if(!y&&!n){ notUnderstood("net","not_yes_no",v); return; } understood(); const ph=S.netAsk.phase; log("net_answer",{answer:y?"continue":"rest", phase:ph}); S.netAsk=null;
   if(y){ if(S.phase==="listen") S.line=null; render(); focusVoice(); return; }
   say(T("netBack")); goRest("net_lost"); return; }
- if(m==="help"){ const t=String(v||"").trim(), y=GREET_YES.test(t)||/^\s*(aiutami|guidami|help)/i.test(t), n=GREET_NO.test(t)||/^\s*(faccio da solo|da solo|by myself)/i.test(t);
-  if(!y&&!n){ notUnderstood("help","not_yes_no",v); return; } understood(); log("help_answer",{answer:y?"yes":"no"}); startManual(!!y); return; }
+ if(m==="help"){ const t=normT(v); let w=null;
+  if(/ricett|recipe/.test(t)) w="recipe"; else if(/da solo|faccio io|faccio da me|fai da solo|myself|on my own|^no\b|^nah\b/.test(t)) w="self"; else if(/^(si|ok|okay|va bene|certo|guida|guidami|aiutami|passo|una mano|yes|sure|guide|help|step)\b/.test(t)||/passo per passo|step by step/.test(t)) w="guide";
+  if(!w){ notUnderstood("help","not_one_of_three",v); return; } understood(); log("help_answer",{answer:w}); if(w==="recipe"){ S.line=null; openRecipes(); return; } startManual(w==="guide"); return; }
  if(m==="guide"){ const t=String(v||"").trim();
   if(/^\s*(salta|saltiamo|avanti|prossimo|skip|next)\b/i.test(t)){ understood(); say(T("guideSkip")); guideNext("skipped"); render(); return; }
   if(/^\s*(basta|stop|fine|faccio da solo|da solo|enough|by myself)\b/i.test(t)){ understood(); log("guide_stopped",{at:guideStep()&&guideStep().k}); S.guide=null; say(T("guideStop")); render(); return; }
   notUnderstood("guide","not_skip_stop",v); return; }
+ if(m==="listen"&&!S.line&&S.greet&&S.greet.redo&&!S.pending){ const t=normT(v), rd=S.greet.redo;
+  const y=/^(si|ok|okay|va bene|certo|volentieri|rifacciamo|rifallo|rifalla|quello|quella|yes|sure|again)\b/.test(t)&&!/nuov/.test(t), n=/^(no|nah|qualcosa di nuovo|nuovo|altro|qualcos'altro|something new|new)\b/.test(t)||/qualcosa di nuovo|something new/.test(t);
+  if(y){ understood(); log("redo_answer",{answer:"yes", pod:rd.n}); S.greet={...S.greet, redo:null}; redoPod(rd); return; }
+  if(n&&!/\p{L}{3}/u.test(t.replace(/\b(no|nah|qualcosa di nuovo|qualcos'altro|qualcosa d'altro|di nuovo|nuovo|altro|something new|new|grazie|thanks|pensiamo|pensiamo a)\b/g,""))){ understood(); log("redo_answer",{answer:"no", pod:rd.n}); S.greet={key:S.greet.key, ...greetingPlain()}; S.line=null; render(); focusVoice(); return; }
+  log("redo_answer",{answer:"other_request", pod:rd.n}); S.greet={key:S.greet.key, ...greetingPlain()}; }
  if(m==="listen"&&!S.line&&S.greet&&!S.pending){ const t=String(v||"").trim(), y=t.match(GREET_YES), n=t.match(GREET_NO);
   if(y||n){ const rest=t.slice((y||n)[0].length).replace(/^[\s,.:;!-]+/,"").trim(), k=S.greet.extra.greeting_slot; understood();
    if(y){ log("greet_answer",{answer:"yes", slot:k}); S.reqSlot=k; const ph=T("greetQ."+k).replace(/\?$/,"")+(rest?", "+rest:""); if(needSlotTaste()){ askSlotTaste(ph); return; } sendPhrase(ph); return; }
    log("greet_answer",{answer:"no", slot:k}); if(/\p{L}{3}/u.test(rest)){ const rs=slotFromRequest(rest); S.reqSlot=rs; if(needSlotTaste()){ askSlotTaste(rest); return; } sendPhrase(rest); return; }
    S.line=T("listening")+"?"; render(); focusVoice(); return; } }
- if(m==="decide"){ const c=validate("decide",v); if(!c.ok){ notUnderstood("decide",c.reason,v); return; } understood(); log("decide_answer",{act:c.value.act, via:"voice"});
-  if(c.value.act==="confirm"){ if(canConfirm()) confirmPod(); else { say(T("decideBlocked")); render(); } return; }
-  if(c.value.text&&remoteReady()){ startRework(true); if(S.phase==="rework") sendRework(c.value.text); return; } startRework(); return; }
+ if(m==="decide"){ const d=readDecision(v); if(d.act==="unclear"){ notUnderstood("decide",String(v||"").trim()?"not_confirm_change":"empty",v); return; } understood();
+  log("decide_answer",{act:d.act, recognized:"local", via:"voice"});
+  if(d.act==="confirm"){ requestConfirm("voice_local"); return; }
+  if(d.act==="rework"&&remoteReady()){ startRework(true); if(S.phase==="rework") sendRework(d.text); return; } startRework(); return; }
+ if(m==="rework"){ const d=readDecision(v);
+  if(d.act==="confirm"){ understood(); log("decide_answer",{act:"confirm", recognized:"local", via:"voice", from:"rework"}); log("rework_cancelled",{n:S.rework&&S.rework.n, by:"confirm"}); S.phase="compose"; S.rework=null; S.line=null; requestConfirm("voice_local"); return; }
+  if(d.act==="reject"||d.act==="unclear"){ notUnderstood("rework",d.act==="reject"?"generic_reject_again":"not_confirm_change",v); return; } }
+ if(m==="look"){ const t=normT(v);
+  if(/^(si|vediamo|fammi vedere|guardo|guardiamo|mostrami|ok vediamo|yes|show me|let me see|let's see)\b/.test(t)&&!/comunque/.test(t)){ understood(); lookAnswer("look","voice"); return; }
+  if(/^(no|confermo|conferma|va bene|ok|vai|procedi|comunque|conferma comunque|confermo comunque|non serve|no grazie|confirm|go ahead|no thanks)\b/.test(t)){ understood(); lookAnswer("confirm_anyway","voice"); return; }
+  notUnderstood("look","not_look_confirm",v); return; }
+ if(m==="choose"){ const i=pickIndex(v,S.choice.opts.map(o=>o.title)); if(i<0){ notUnderstood("choose","no_option_matched",v); return; } understood(); pickOption(i,"voice"); return; }
+ if(m==="recipe"){ const i=pickIndex(v,S.recipes.list.map(r=>recipeName(r))); if(i<0){ notUnderstood("recipe","no_recipe_matched",v); return; } understood(); pickRecipe(i,"voice"); return; }
  if(m==="listen"||m==="rework"){ const c=validate(m,v); if(!c.ok){ notUnderstood(m,c.reason,v); return; }
   if(m==="listen"){ const rs=slotFromRequest(c.value); S.reqSlot=rs; if(rs&&rs!==(S.slotForced||realSlot())) log("slot_from_request",{slot:rs, slot_real:realSlot(), slot_forced:S.slotForced||null});
    if(needSlotTaste()){ askSlotTaste(c.value); return; } sendPhrase(c.value); } else sendRework(c.value); return; }
@@ -2328,7 +2460,7 @@ function renderPanel(){
  if(panel.contains(document.activeElement)&&document.activeElement.tagName==="INPUT"){ updatePanelLive(); return; }
  const s=S.session, rr=remoteReady(), F=faceFor();
  /* una riga per funzione: dove gira e se in questo momento è attiva; le funzioni remote dicono attraverso quale servizio */
- const ARCH_KIND=["loc","loc","loc","loc","loc","loc","loc","loc","loc","loc","rem","rem","rem","rem","rem","rem"], ARCH_FALLBACK=[10,14,15];
+ const ARCH_KIND=["loc","loc","loc","loc","loc","loc","loc","loc","loc","loc","rem","rem","rem","rem","rem","rem","loc","loc","rem"], ARCH_FALLBACK=[10,14,15];
  const via=IN_CLAUDE?T("viaClaude"):(apiCfg().keys[apiCfg().provider]?PROVIDERS[apiCfg().provider].label.replace(/ \(.*\)$/,""):"—");
  const arch=ARCH_KIND.map((k,i)=>[k,k==="loc"?1:rr,i]);
  const profs=Object.values(S.profiles).map(p=>`<details ${p.key===S.profileKey?"open":""}><summary>${esc(pName(p))}${p.key===S.profileKey?" · "+T("pActive"):""}</summary>
@@ -2349,7 +2481,7 @@ function renderPanel(){
  ${apiPanelHTML()}
  <section><h3>${T("pExpr")}</h3><div class="exprline" id="exprLine"></div><div class="small">${T("pSim")}</div></section>
  <section><h3>${T("pArch")}</h3><table class="arch"><tbody>${T("archF").map((f,i)=>`<tr><td>${esc(f)}</td><td style="text-align:right"><span class="tag ${arch[i][0]==="loc"?"loc":(arch[i][1]?"rem":"off")}">${arch[i][0]==="loc"?T("loc"):T("rem")}</span><div class="small">${arch[i][0]==="loc"?T("active"):(arch[i][1]?T("active")+" · "+esc(via):(ARCH_FALLBACK.includes(i)&&i!==10?T("offlineLocal"):(i===10?T("offlineLocal"):T("inactive"))))}</div></td></tr>`).join("")}</tbody></table>
-  <div class="declare">${T("declare")}</div></section>
+  <div class="declare">${T("declare")}</div><div class="small" style="margin-top:6px">${T("pProposals")}</div></section>
  <section><h3>${T("pProfiles")}</h3>${profs}</section>
  <section><h3>${T("pLook")}</h3><div class="g2"><label class="field">${T("pTier")}<select id="tierSel"><option value="quick" ${MODEL_TIER_UI==="quick"?"selected":""}>${T("tierQuick")}</option><option value="default" ${MODEL_TIER_UI==="default"?"selected":""}>${T("tierDefault")}</option></select></label><label class="field">${T("pLang")}<select id="langSel"><option value="it" ${S.lang==="it"?"selected":""}>Italiano</option><option value="en" ${S.lang==="en"?"selected":""}>English</option></select></label></div></section>
  ${s&&!s.ended&&S.phase==="done"?`<section class="endbox"><h3>${T("pEndBox")}</h3><div class="btnrow"><button class="pillbtn" id="btnNewComp" type="button">${T("pNewComp")}</button></div><div class="small">${T("pNewCompHint")}</div>
